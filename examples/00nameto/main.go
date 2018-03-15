@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"go/types"
 	"log"
 
 	"go/parser"
 	"go/token"
+	"go/types"
 
 	"github.com/podhmo/handwriting"
 	"golang.org/x/tools/go/loader"
@@ -36,16 +36,15 @@ type C xloader.Config
 		TypeCheckFuncBodies: func(path string) bool { return false },
 	}
 	c.CreateFromFiles("p", file)
+
 	prog, err := c.Load()
 	if err != nil {
 		return err
 	}
-	info := prog.Package("p")
-
-	qf := handwriting.NewPrefixer(info.Pkg, info.Files[0]).NameTo
+	f := handwriting.NewNameResolver(prog.Package("p").Pkg).File(file)
 
 	ob := prog.Package("golang.org/x/tools/go/loader").Pkg.Scope().Lookup("Config")
-	fmt.Println(types.TypeString(types.NewPointer(ob.Type()), qf))
-	fmt.Println(types.TypeString(types.NewPointer(ob.Type()), qf))
+	fmt.Println(f.Name(ob))
+	fmt.Println(f.TypeName(types.NewPointer(ob.Type())))
 	return nil
 }
