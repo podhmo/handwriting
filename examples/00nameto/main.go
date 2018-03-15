@@ -44,7 +44,11 @@ type C xloader.Config
 	f := handwriting.NewNameResolver(prog.Package("p").Pkg).File(file)
 
 	ob := prog.Package("golang.org/x/tools/go/loader").Pkg.Scope().Lookup("Config")
+
+	// xloader.Config
 	fmt.Println(f.Name(ob))
+
+	// *xloader.Config
 	fmt.Println(f.TypeName(types.NewPointer(ob.Type())))
 	return nil
 }
