@@ -62,6 +62,9 @@ func TestNamedTo(t *testing.T) {
 		)
 		yfoo.Scope().Insert(types.NewConst(token.NoPos, yfoo, "Y", types.Universe.Lookup("string").Type(), constant.MakeString("y")))
 
+		f.Import(yfoo)
+		f.Import(foo)
+
 		t.Run("Name", func(t *testing.T) {
 			assert.Exactly(t, "foo1.Y", f.Name(yfoo.Scope().Lookup("Y")))
 		})
@@ -69,4 +72,20 @@ func TestNamedTo(t *testing.T) {
 			assert.Exactly(t, "*foo1.M", f.TypeName(types.NewPointer(M)))
 		})
 	})
+
+	t.Run("duplicated import", func(t *testing.T) {
+		f := NewNameResolver(p).File(nil)
+
+		f.Import(foo)
+		f.Import(foo)
+		f.Import(foo)
+
+		t.Run("Name", func(t *testing.T) {
+			assert.Exactly(t, "foo.X", f.Name(foo.Scope().Lookup("X")))
+		})
+		t.Run("TypeName", func(t *testing.T) {
+			assert.Exactly(t, "*foo.S", f.TypeName(types.NewPointer(S)))
+		})
+	})
+
 }
