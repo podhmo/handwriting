@@ -45,12 +45,12 @@ type File struct {
 
 // Import :
 func (f *File) Import(pkg *types.Package) {
-	f.NamedImport(pkg, pkg.Name())
+	f.ImportWithName(pkg, pkg.Name())
 	return
 }
 
-// NamedImport :
-func (f *File) NamedImport(pkg *types.Package, name string) {
+// ImportWithName :
+func (f *File) ImportWithName(pkg *types.Package, name string) {
 	if _, ok := f.Imported[pkg.Path()]; ok {
 		return
 	}
@@ -101,7 +101,7 @@ func ImportFake(f *File, path, name string) {
 	}
 	pkg := types.NewPackage(path, name)
 	f.fakes[path] = pkg
-	f.NamedImport(pkg, name)
+	f.ImportWithName(pkg, name)
 	return
 }
 
