@@ -86,11 +86,31 @@ func (h *Handwriting) Commit(w io.Writer) error {
 
 	for i := range files {
 		s.File = files[i]
+		s.Output = output.New(w)
 		for _, ac := range s.File.Setups {
 			if err := ac(s); err != nil {
 				return errors.Wrap(err, fmt.Sprintf("setup %d, in %q", i, s.File.Name))
 			}
 		}
+
+		s.Output.Printf("package %s\n", s.Pkg.Name())
+		if len(s.File.imports) > 0 {
+			s.Output.Println("")
+			s.Output.Println("import (")
+			s.Output.Indent()
+			// todo : sort
+			for _, im := range s.File.imports {
+				if im.Name == "" {
+					s.Output.Printfln(`%q`, im.Path)
+				} else {
+					s.Output.Printfln(`%s %q`, im.Name, im.Path)
+				}
+			}
+			s.Output.UnIndent()
+			s.Output.Println(")")
+			s.Output.Println("")
+		}
+
 		for _, ac := range s.File.Actions {
 			if err := ac(s); err != nil {
 				return errors.Wrap(err, fmt.Sprintf("action %d, in %q", i, s.File.Name))
@@ -104,7 +124,7 @@ func (h *Handwriting) Commit(w io.Writer) error {
 func (h *Handwriting) File(name string) *File {
 	f, ok := h.Files[name]
 	if !ok {
-		f = &File{filename: name, Root: h, File: h.Resolver.File(nil)}
+		f = &File{filename: name, Root: h, File: h.Resolver.File(nil), used: map[string]struct{}{}}
 		h.Files[name] = f
 	}
 	return f
@@ -122,6 +142,11 @@ func (f *File) Import(path string) {
 
 // ImportWithName :
 func (f *File) ImportWithName(path string, name string) {
+	if _, existed := f.used[path]; existed {
+		return
+	}
+	f.used[path] = struct{}{}
+
 	f.Setups = append(f.Setups, func(s *State) error {
 		info := s.Prog.Package(path)
 		if info == nil {
@@ -129,6 +154,7 @@ func (f *File) ImportWithName(path string, name string) {
 		}
 
 		name := name
+		f.imports = append(f.imports, importspec{Name: name, Path: path})
 		if name == "" {
 			name = info.Pkg.Name()
 		}
@@ -142,9 +168,17 @@ func (f *File) ImportWithName(path string, name string) {
 type File struct {
 	filename string
 	*name.File
-	Root    *Handwriting
+	Root *Handwriting
+
 	Setups  []func(*State) error
 	Actions []func(*State) error
+	imports []importspec
+	used    map[string]struct{}
+}
+
+type importspec struct {
+	Name string
+	Path string
 }
 
 // State :

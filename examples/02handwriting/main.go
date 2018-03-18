@@ -11,12 +11,14 @@ func main() {
 	defer h.Commit(os.Stdout)
 	f := h.File("fo.go")
 
-	f.Import("fmt")
+	f.ImportWithName("fmt", "xfmt")
 	f.Code(func(s *handwriting.State) error {
 		o := s.Output
+
 		// todo: nil safe (not panic)
 		println := s.Lookup("fmt").Scope().Lookup("Println")
 
+		o.Println("// F :")
 		o.WithBlock("func F(x int)", func() {
 			o.WithIfAndElse(
 				"x % 2 == 0",
