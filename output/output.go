@@ -1,4 +1,4 @@
-package handwriting
+package output
 
 import (
 	"fmt"
@@ -13,8 +13,8 @@ type Output struct {
 	prefix string
 }
 
-// NewOutput :
-func NewOutput(w io.Writer) *Output {
+// New :
+func New(w io.Writer) *Output {
 	return &Output{W: w}
 }
 

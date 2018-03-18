@@ -3,11 +3,11 @@ package main
 import (
 	"os"
 
-	"github.com/podhmo/handwriting"
+	"github.com/podhmo/handwriting/output"
 )
 
 func main() {
-	o := handwriting.NewOutput(os.Stdout)
+	o := output.New(os.Stdout)
 	o.Println("// F :")
 	o.WithBlock("func F(x int)", func() {
 		o.WithIfAndElse(
