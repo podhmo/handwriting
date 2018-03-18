@@ -66,3 +66,8 @@ func (w *Output) Println(s string) (int, error) {
 func (w *Output) Printf(format string, args ...interface{}) (int, error) {
 	return fmt.Fprintf(w.W, (w.prefix + format), args...)
 }
+
+// Printfln :
+func (w *Output) Printfln(format string, args ...interface{}) (int, error) {
+	return fmt.Fprintf(w.W, (w.prefix + format + "\n"), args...)
+}
