@@ -1,4 +1,4 @@
-package handwriting
+package name
 
 import (
 	"go/constant"
@@ -23,7 +23,7 @@ func TestNamedTo(t *testing.T) {
 	p := types.NewPackage("github.com/xxx/p", "p")
 
 	t.Run("see package name", func(t *testing.T) {
-		f := NewNameResolver(p).File(nil)
+		f := New(p).File(nil)
 		t.Run("Name", func(t *testing.T) {
 			assert.Exactly(t, "foo.X", f.Name(foo.Scope().Lookup("X")))
 		})
@@ -40,7 +40,7 @@ func TestNamedTo(t *testing.T) {
 		file, err := parser.ParseFile(fset, "", source, parser.ImportsOnly)
 		require.NoError(t, err)
 
-		f := NewNameResolver(p).File(file)
+		f := New(p).File(file)
 
 		t.Run("Name", func(t *testing.T) {
 			assert.Exactly(t, "xfoo.X", f.Name(foo.Scope().Lookup("X")))
@@ -51,7 +51,7 @@ func TestNamedTo(t *testing.T) {
 	})
 
 	t.Run("duplicated name", func(t *testing.T) {
-		f := NewNameResolver(p).File(nil)
+		f := New(p).File(nil)
 		f.Import(foo)
 
 		yfoo := types.NewPackage("github.com/yyy/foo", "foo")
@@ -74,7 +74,7 @@ func TestNamedTo(t *testing.T) {
 	})
 
 	t.Run("duplicated import", func(t *testing.T) {
-		f := NewNameResolver(p).File(nil)
+		f := New(p).File(nil)
 
 		f.Import(foo)
 		f.Import(foo)

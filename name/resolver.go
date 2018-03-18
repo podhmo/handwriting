@@ -1,4 +1,4 @@
-package handwriting
+package name
 
 import (
 	"fmt"
@@ -6,20 +6,20 @@ import (
 	"go/types"
 )
 
-// NameResolver :
-type NameResolver struct {
+// Resolver :
+type Resolver struct {
 	Pkg *types.Package
 }
 
-// NewNameResolver :
-func NewNameResolver(pkg *types.Package) *NameResolver {
-	return &NameResolver{
+// New :
+func New(pkg *types.Package) *Resolver {
+	return &Resolver{
 		Pkg: pkg,
 	}
 }
 
 // File :
-func (r *NameResolver) File(f *ast.File) *File {
+func (r *Resolver) File(f *ast.File) *File {
 	imported := map[string]string{}
 	named := map[string]int{}
 	if f != nil {
@@ -37,7 +37,7 @@ func (r *NameResolver) File(f *ast.File) *File {
 
 // File :
 type File struct {
-	Root     *NameResolver
+	Root     *Resolver
 	Imported map[string]string // path -> prefix
 	named    map[string]int
 	fakes    map[string]*types.Package
