@@ -183,10 +183,10 @@ type importspec struct {
 
 // State :
 type State struct {
-	Prog   *loader.Program
-	Output *output.Output
-	Pkg    *types.Package
-	File   *File
+	Prog *loader.Program
+	Pkg  *types.Package
+	*output.Output
+	*File
 }
 
 // Lookup :

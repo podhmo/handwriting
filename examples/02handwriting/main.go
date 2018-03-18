@@ -6,24 +6,29 @@ import (
 	"github.com/podhmo/handwriting"
 )
 
+// TODO:
+// - finding unexisted package
+// - finding unexisted member of package
+
 func main() {
 	h := handwriting.NewFromPath("github.com/podhmo/f")
 	defer h.Commit(os.Stdout)
+	// todo: defer h.Commit(PackageWriter("github.com/podhmo/f"))
+	// todo: defer h.Commit(PhysicalFilePathWriter("./"))
+
 	f := h.File("fo.go")
 
 	f.ImportWithName("fmt", "xfmt")
 	f.Code(func(s *handwriting.State) error {
-		o := s.Output
-
 		// todo: nil safe (not panic)
 		println := s.Lookup("fmt").Scope().Lookup("Println")
 
-		o.Println("// F :")
-		o.WithBlock("func F(x int)", func() {
-			o.WithIfAndElse(
+		s.Println("// F :")
+		s.WithBlock("func F(x int)", func() {
+			s.WithIfAndElse(
 				"x % 2 == 0",
-				func() { o.Printfln(`%s("even")`, s.File.Name(println)) },
-				func() { o.Printfln(`%s("odd")`, s.File.Name(println)) },
+				func() { s.Printfln(`%s("even")`, s.Name(println)) },
+				func() { s.Printfln(`%s("odd")`, s.Name(println)) },
 			)
 		})
 		return nil
