@@ -25,7 +25,7 @@ func run() error {
 	f := h.File("fo.go")
 
 	f.ImportWithName("fmt", "xfmt")
-	f.Code(func(s *handwriting.State) error {
+	f.Code(func(s *handwriting.Emitter) error {
 		// todo: nil safe (not panic)
 		println := s.Lookup("fmt").Scope().Lookup("Println")
 
@@ -39,5 +39,5 @@ func run() error {
 		})
 		return nil
 	})
-	return h.Commit()
+	return h.Run()
 }
