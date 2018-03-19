@@ -2,22 +2,12 @@ package bundle
 
 import (
 	"go/build"
-	"go/types"
 	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/pkg/errors"
 )
-
-// NewFromPackage :
-func NewFromPackage(pkg *types.Package, createIfNotExists bool) (Opener, error) {
-	path, err := pkgFilePath(pkg.Path(), createIfNotExists)
-	if err != nil {
-		return nil, err
-	}
-	return &fileOpener{Base: path}, nil
-}
 
 func pkgFilePath(pkgname string, createIfNotExists bool) (string, error) {
 	ctxt := build.Default

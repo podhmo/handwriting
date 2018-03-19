@@ -39,5 +39,5 @@ func run() error {
 		})
 		return nil
 	})
-	return h.Run()
+	return h.Emit()
 }

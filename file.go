@@ -48,7 +48,7 @@ func (f *File) ImportWithName(path string, name string) {
 		f.File.ImportWithName(info.Pkg, name)
 		return nil
 	})
-	f.Root.importt(path)
+	f.Root.Config.Import(path)
 }
 
 type importspec struct {

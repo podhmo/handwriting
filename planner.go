@@ -44,7 +44,7 @@ func New(pkg *types.Package, ops ...func(*Planner)) (*Planner, error) {
 	}
 	if h.Opener == nil {
 		createIfNotExists := true
-		opener, err := bundle.NewFromPackage(pkg, createIfNotExists)
+		opener, err := bundle.Package(pkg, createIfNotExists)
 		if err != nil {
 			return nil, err
 		}
@@ -53,13 +53,8 @@ func New(pkg *types.Package, ops ...func(*Planner)) (*Planner, error) {
 	return h, nil
 }
 
-// importt :
-func (h *Planner) importt(pkg string) {
-	h.Config.Import(pkg)
-}
-
-// Run :
-func (h *Planner) Run() error {
+// Emit :
+func (h *Planner) Emit() error {
 	prog, err := h.Config.Load()
 	if err != nil {
 		return errors.Wrap(err, "commit")

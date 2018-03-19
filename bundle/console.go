@@ -5,11 +5,6 @@ import (
 	"io"
 )
 
-// Console :
-func Console(w io.Writer) Opener {
-	return &consoleOpener{w: w}
-}
-
 type consoleOpener struct {
 	w io.Writer
 }
