@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"os"
 
 	"github.com/podhmo/handwriting/multifile"
 )
@@ -17,7 +16,7 @@ func main() {
 
 func run() error {
 	// opener := multifile.Must(multifile.Dir("./foo"))
-	opener := multifile.Console(os.Stdout)
+	opener := multifile.Stdout()
 
 	if err := multifile.WriteFile(opener, "f0.go", func(w io.Writer) error {
 		fmt.Fprintln(w, "f0")

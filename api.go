@@ -2,7 +2,6 @@ package handwriting
 
 import (
 	"go/types"
-	"os"
 	"strings"
 
 	"github.com/podhmo/handwriting/multifile"
@@ -32,5 +31,5 @@ func WithOpener(o multifile.Opener) func(*Planner) {
 
 // WithDryRun :
 func WithDryRun() func(*Planner) {
-	return WithOpener(multifile.Console(os.Stderr))
+	return WithOpener(multifile.Stderr())
 }

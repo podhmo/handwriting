@@ -26,6 +26,16 @@ func Console(w io.Writer) Opener {
 	return &consoleOpener{w: w}
 }
 
+// Stdout :
+func Stdout() Opener {
+	return &consoleOpener{w: os.Stdout}
+}
+
+// Stderr :
+func Stderr() Opener {
+	return &consoleOpener{w: os.Stderr}
+}
+
 // Dir :
 func Dir(base string) (Opener, error) {
 	if err := os.MkdirAll(base, 0744); err != nil {
