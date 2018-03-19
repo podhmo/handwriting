@@ -3,12 +3,13 @@ package handwriting
 import (
 	"fmt"
 	"go/types"
+	"io"
 	"sort"
 
 	"github.com/pkg/errors"
-	"github.com/podhmo/handwriting/name"
-	"github.com/podhmo/handwriting/opener"
+	"github.com/podhmo/handwriting/bundle"
 	"github.com/podhmo/handwriting/indent"
+	"github.com/podhmo/handwriting/name"
 	"golang.org/x/tools/go/loader"
 )
 
@@ -19,7 +20,7 @@ type Handwriting struct {
 
 	Resolver *name.Resolver
 	Files    map[string]*File
-	Opener   opener.Opener
+	Opener   bundle.Opener
 	// options
 	TypeCheck bool
 }
@@ -46,7 +47,7 @@ func New(pkg *types.Package, ops ...func(*Handwriting)) (*Handwriting, error) {
 	}
 	if h.Opener == nil {
 		createIfNotExists := true
-		opener, err := opener.NewFromPackage(pkg, createIfNotExists)
+		opener, err := bundle.NewFromPackage(pkg, createIfNotExists)
 		if err != nil {
 			return nil, err
 		}
@@ -78,50 +79,49 @@ func (h *Handwriting) Commit() error {
 	sort.Slice(files, func(i, j int) bool { return files[i].filename < files[j].filename })
 
 	for i := range files {
-		i := i
-		s.File = files[i]
-		w, err := h.Opener.Open(s.File.filename)
-		if err != nil {
-			return err
-		}
-		if err := func() error {
-			defer w.Close()
-			s.Output = indent.New(w)
-			for _, ac := range s.File.Setups {
-				if err := ac(s); err != nil {
-					return errors.Wrap(err, fmt.Sprintf("setup %d, in %q", i, s.File.Name))
-				}
-			}
-
-			s.Output.Printf("package %s\n", s.Pkg.Name())
-			if len(s.File.imports) > 0 {
-				s.Output.Println("")
-				s.Output.Println("import (")
-				s.Output.Indent()
-				// todo : sort
-				for _, im := range s.File.imports {
-					if im.Name == "" {
-						s.Output.Printfln(`%q`, im.Path)
-					} else {
-						s.Output.Printfln(`%s %q`, im.Name, im.Path)
-					}
-				}
-				s.Output.UnIndent()
-				s.Output.Println(")")
-				s.Output.Println("")
-			}
-
-			for _, ac := range s.File.Actions {
-				if err := ac(s); err != nil {
-					return errors.Wrap(err, fmt.Sprintf("action %d, in %q", i, s.File.Name))
-				}
-			}
-			return nil
-		}(); err != nil {
+		if err := h.write(s, files[i]); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+func (h *Handwriting) write(s *State, file *File) error {
+	return bundle.Bundle(h.Opener, file.filename, func(w io.Writer) error {
+		s.File = file
+		s.Output = indent.New(w)
+
+		for _, ac := range s.File.Setups {
+			if err := ac(s); err != nil {
+				return errors.Wrap(err, fmt.Sprintf("setup in %q", s.File.Name))
+			}
+		}
+
+		s.Output.Printf("package %s\n", s.Pkg.Name())
+		if len(s.File.imports) > 0 {
+			s.Output.Println("")
+			s.Output.Println("import (")
+			s.Output.Indent()
+			// todo : sort
+			for _, im := range s.File.imports {
+				if im.Name == "" {
+					s.Output.Printfln(`%q`, im.Path)
+				} else {
+					s.Output.Printfln(`%s %q`, im.Name, im.Path)
+				}
+			}
+			s.Output.UnIndent()
+			s.Output.Println(")")
+			s.Output.Println("")
+		}
+
+		for _, ac := range s.File.Actions {
+			if err := ac(s); err != nil {
+				return errors.Wrap(err, fmt.Sprintf("action in %q", s.File.Name))
+			}
+		}
+		return nil
+	})
 }
 
 // File :

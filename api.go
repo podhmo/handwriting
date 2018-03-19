@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/podhmo/handwriting/opener"
+	"github.com/podhmo/handwriting/bundle"
 	"golang.org/x/tools/go/loader"
 )
 
@@ -24,7 +24,7 @@ func WithConfig(c *loader.Config) func(*Handwriting) {
 }
 
 // WithOpener :
-func WithOpener(o opener.Opener) func(*Handwriting) {
+func WithOpener(o bundle.Opener) func(*Handwriting) {
 	return func(h *Handwriting) {
 		h.Opener = o
 	}
@@ -32,5 +32,5 @@ func WithOpener(o opener.Opener) func(*Handwriting) {
 
 // WithDryRun :
 func WithDryRun() func(*Handwriting) {
-	return WithOpener(opener.Console(os.Stderr))
+	return WithOpener(bundle.Console(os.Stderr))
 }
