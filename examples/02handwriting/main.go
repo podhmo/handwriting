@@ -1,7 +1,7 @@
 package main
 
 import (
-	"os"
+	"log"
 
 	"github.com/podhmo/handwriting"
 )
@@ -11,10 +11,16 @@ import (
 // - finding unexisted member of package
 
 func main() {
-	h := handwriting.NewFromPath("github.com/podhmo/f")
-	defer h.Commit(os.Stdout)
-	// todo: defer h.Commit(PackageWriter("github.com/podhmo/f"))
-	// todo: defer h.Commit(PhysicalFilePathWriter("./"))
+	if err := run(); err != nil {
+		log.Fatalf("%+v", err)
+	}
+}
+
+func run() error {
+	h, err := handwriting.NewFromPackagePath("github.com/podhmo/f", handwriting.WithDryRun())
+	if err != nil {
+		return err
+	}
 
 	f := h.File("fo.go")
 
@@ -33,4 +39,5 @@ func main() {
 		})
 		return nil
 	})
+	return h.Commit()
 }
