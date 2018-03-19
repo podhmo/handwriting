@@ -1,4 +1,4 @@
-package bundle
+package multifile
 
 import (
 	"io"

@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/podhmo/handwriting/bundle"
+	"github.com/podhmo/handwriting/multifile"
 	"golang.org/x/tools/go/loader"
 )
 
@@ -24,7 +24,7 @@ func WithConfig(c *loader.Config) func(*Planner) {
 }
 
 // WithOpener :
-func WithOpener(o bundle.Opener) func(*Planner) {
+func WithOpener(o multifile.Opener) func(*Planner) {
 	return func(h *Planner) {
 		h.Opener = o
 	}
@@ -32,5 +32,5 @@ func WithOpener(o bundle.Opener) func(*Planner) {
 
 // WithDryRun :
 func WithDryRun() func(*Planner) {
-	return WithOpener(bundle.Console(os.Stderr))
+	return WithOpener(multifile.Console(os.Stderr))
 }

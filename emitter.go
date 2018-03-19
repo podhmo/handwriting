@@ -6,7 +6,7 @@ import (
 	"io"
 
 	"github.com/pkg/errors"
-	"github.com/podhmo/handwriting/bundle"
+	"github.com/podhmo/handwriting/multifile"
 	"github.com/podhmo/handwriting/indent"
 	"golang.org/x/tools/go/loader"
 )
@@ -15,14 +15,14 @@ import (
 type Emitter struct {
 	Prog   *loader.Program
 	Pkg    *types.Package
-	Opener bundle.Opener
+	Opener multifile.Opener
 	*indent.Output
 	*File
 }
 
 // Emit :
 func (e *Emitter) Emit(file *File) error {
-	return bundle.Bundle(e.Opener, file.filename, func(w io.Writer) error {
+	return multifile.WriteFile(e.Opener, file.filename, func(w io.Writer) error {
 		e.File = file
 		e.Output = indent.New(w)
 

@@ -5,7 +5,7 @@ import (
 	"sort"
 
 	"github.com/pkg/errors"
-	"github.com/podhmo/handwriting/bundle"
+	"github.com/podhmo/handwriting/multifile"
 	"github.com/podhmo/handwriting/name"
 	"golang.org/x/tools/go/loader"
 )
@@ -17,7 +17,7 @@ type Planner struct {
 
 	Resolver *name.Resolver
 	Files    map[string]*File
-	Opener   bundle.Opener
+	Opener   multifile.Opener
 	// options
 	TypeCheck bool
 }
@@ -44,7 +44,7 @@ func New(pkg *types.Package, ops ...func(*Planner)) (*Planner, error) {
 	}
 	if h.Opener == nil {
 		createIfNotExists := true
-		opener, err := bundle.Package(pkg, createIfNotExists)
+		opener, err := multifile.Package(pkg, createIfNotExists)
 		if err != nil {
 			return nil, err
 		}
