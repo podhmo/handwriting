@@ -11,10 +11,16 @@ type File struct {
 	*name.File
 	Root *Planner
 
+	Headers []string
 	Setups  []func(*Emitter) error
 	Actions []func(*Emitter) error
 	imports []importspec
 	used    map[string]struct{}
+}
+
+// Header :
+func (f *File) Header(s string) {
+	f.Headers = append(f.Headers, s)
 }
 
 // Code :
@@ -33,6 +39,11 @@ func (f *File) ImportWithName(path string, name string) {
 		return
 	}
 	f.used[path] = struct{}{}
+	f.Root.Config.Import(path)
+
+	if f.Root.Pkg.Path() == path {
+		return
+	}
 
 	f.Setups = append(f.Setups, func(s *Emitter) error {
 		info := s.Prog.Package(path)
@@ -48,7 +59,6 @@ func (f *File) ImportWithName(path string, name string) {
 		f.File.ImportWithName(info.Pkg, name)
 		return nil
 	})
-	f.Root.Config.Import(path)
 }
 
 type importspec struct {

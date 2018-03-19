@@ -30,6 +30,14 @@ func (w *Output) UnIndent() {
 	w.prefix = strings.Repeat("	", w.i)
 }
 
+// WithIndent :
+func (w *Output) WithIndent(prefix string, callback func()) {
+	w.Println(prefix)
+	w.Indent()
+	callback()
+	w.UnIndent()
+}
+
 // WithBlock :
 func (w *Output) WithBlock(prefix string, callback func()) {
 	w.Println(prefix + " {")

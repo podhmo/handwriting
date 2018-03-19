@@ -1,6 +1,7 @@
 package handwriting
 
 import (
+	"go/build"
 	"go/types"
 	"sort"
 
@@ -41,6 +42,13 @@ func New(pkg *types.Package, ops ...func(*Planner)) (*Planner, error) {
 				return false
 			}
 		}
+
+		// check package, if existed, import as initial package (tentative)
+		if _, err := build.Default.Import(h.Pkg.Path(), ".", build.FindOnly); err != nil {
+			h.Config.CreateFromFiles(h.Pkg.Path())
+		} else {
+			h.Config.Import(h.Pkg.Path())
+		}
 	}
 	if h.Opener == nil {
 		createIfNotExists := true
@@ -61,7 +69,7 @@ func (h *Planner) Emit() error {
 	}
 	r := &Emitter{
 		Prog:   prog,
-		Pkg:    h.Pkg,
+		Pkg:    prog.Package(h.Pkg.Path()),
 		Opener: h.Opener,
 	}
 

@@ -6,15 +6,15 @@ import (
 	"io"
 
 	"github.com/pkg/errors"
-	"github.com/podhmo/handwriting/multifile"
 	"github.com/podhmo/handwriting/indent"
+	"github.com/podhmo/handwriting/multifile"
 	"golang.org/x/tools/go/loader"
 )
 
 // Emitter :
 type Emitter struct {
 	Prog   *loader.Program
-	Pkg    *types.Package
+	Pkg    *loader.PackageInfo
 	Opener multifile.Opener
 	*indent.Output
 	*File
@@ -32,7 +32,10 @@ func (e *Emitter) Emit(file *File) error {
 			}
 		}
 
-		e.Output.Printf("package %s\n", e.Pkg.Name())
+		for _, s := range e.File.Headers {
+			e.Output.Println(s)
+		}
+		e.Output.Printf("package %s\n", e.Pkg.Pkg.Name())
 		if len(e.File.imports) > 0 {
 			e.Output.Println("")
 			e.Output.Println("import (")

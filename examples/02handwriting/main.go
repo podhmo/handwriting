@@ -17,7 +17,7 @@ func main() {
 }
 
 func run() error {
-	h, err := handwriting.NewFromPackagePath("github.com/podhmo/f", handwriting.WithDryRun())
+	h, err := handwriting.NewFromPackagePath("github.com/podhmo/g", handwriting.WithDryRun())
 	if err != nil {
 		return err
 	}
