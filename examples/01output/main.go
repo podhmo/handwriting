@@ -3,11 +3,11 @@ package main
 import (
 	"os"
 
-	"github.com/podhmo/handwriting/output"
+	"github.com/podhmo/handwriting/indent"
 )
 
 func main() {
-	o := output.New(os.Stdout)
+	o := indent.New(os.Stdout)
 	o.Println("// F :")
 	o.WithBlock("func F(x int)", func() {
 		o.WithIfAndElse(

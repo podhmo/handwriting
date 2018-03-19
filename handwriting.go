@@ -8,7 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/podhmo/handwriting/name"
 	"github.com/podhmo/handwriting/opener"
-	"github.com/podhmo/handwriting/output"
+	"github.com/podhmo/handwriting/indent"
 	"golang.org/x/tools/go/loader"
 )
 
@@ -86,7 +86,7 @@ func (h *Handwriting) Commit() error {
 		}
 		if err := func() error {
 			defer w.Close()
-			s.Output = output.New(w)
+			s.Output = indent.New(w)
 			for _, ac := range s.File.Setups {
 				if err := ac(s); err != nil {
 					return errors.Wrap(err, fmt.Sprintf("setup %d, in %q", i, s.File.Name))
@@ -189,7 +189,7 @@ type importspec struct {
 type State struct {
 	Prog *loader.Program
 	Pkg  *types.Package
-	*output.Output
+	*indent.Output
 	*File
 }
 
