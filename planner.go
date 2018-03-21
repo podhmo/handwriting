@@ -67,11 +67,18 @@ func (h *Planner) Emit() error {
 	if err != nil {
 		return errors.Wrap(err, "commit")
 	}
+
 	r := &Emitter{
 		Prog:   prog,
 		Pkg:    prog.Package(h.Pkg.Path()),
 		Opener: h.Opener,
 	}
+	if r.Pkg.Pkg.Name() == "" {
+		r.Pkg.Pkg.SetName(h.Pkg.Name())
+	}
+	// dummy to concreate package (tentative)
+	h.Pkg = r.Pkg.Pkg
+	h.Resolver.Pkg = r.Pkg.Pkg
 
 	files := make([]*File, 0, len(h.Files))
 	for k := range h.Files {
