@@ -24,7 +24,7 @@ func (f *File) ImportWithName(pkg *types.Package, name string) {
 		return
 	}
 	importedName := name
-	if i, ok := f.used[name]; !ok {
+	if i, ok := f.used[name]; ok {
 		importedName = fmt.Sprintf("%s%d", name, i)
 	}
 	f.Imported[pkg.Path()] = importedName
