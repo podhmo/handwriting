@@ -77,7 +77,7 @@ func (h *Planner) Emit() error {
 	for k := range h.Files {
 		files = append(files, h.Files[k])
 	}
-	sort.Slice(files, func(i, j int) bool { return files[i].filename < files[j].filename })
+	sort.Slice(files, func(i, j int) bool { return files[i].Filename < files[j].Filename })
 
 	for i := range files {
 		if err := r.Emit(files[i]); err != nil {
@@ -91,7 +91,7 @@ func (h *Planner) Emit() error {
 func (h *Planner) File(name string) *File {
 	f, ok := h.Files[name]
 	if !ok {
-		f = &File{filename: name, Root: h, File: h.Resolver.File(nil), used: map[string]struct{}{}}
+		f = &File{Filename: name, Root: h, File: h.Resolver.File(nil), used: map[string]struct{}{}}
 		h.Files[name] = f
 	}
 	return f

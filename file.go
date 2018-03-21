@@ -7,7 +7,7 @@ import (
 
 // File :
 type File struct {
-	filename string
+	Filename string
 	*name.File
 	Root *Planner
 

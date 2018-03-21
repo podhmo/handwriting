@@ -22,13 +22,13 @@ type Emitter struct {
 
 // Emit :
 func (e *Emitter) Emit(file *File) error {
-	return multifile.WriteFile(e.Opener, file.filename, func(w io.Writer) error {
+	return multifile.WriteFile(e.Opener, file.Filename, func(w io.Writer) error {
 		e.File = file
 		e.Output = indent.New(w)
 
 		for _, ac := range e.File.Setups {
 			if err := ac(e); err != nil {
-				return errors.Wrap(err, fmt.Sprintf("setup in %q", e.File.Name))
+				return errors.Wrap(err, fmt.Sprintf("setup in %q", e.File.Filename))
 			}
 		}
 
@@ -55,7 +55,7 @@ func (e *Emitter) Emit(file *File) error {
 
 		for _, ac := range e.File.Actions {
 			if err := ac(e); err != nil {
-				return errors.Wrap(err, fmt.Sprintf("action in %q", e.File.Name))
+				return errors.Wrap(err, fmt.Sprintf("action in %q", e.File.Filename))
 			}
 		}
 		return nil
