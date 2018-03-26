@@ -16,7 +16,11 @@ func main() {
 
 	transform.BindToInterface(f, "golang.org/x/tools/go/loader/Program") // TODO: support indirect import package
 	transform.BindToInterface(f, "github.com/podhmo/handwriting/File")
-
+	f.Code(func(e *handwriting.Emitter) error {
+		e.File.Import("go/type")
+		e.File.Import("go/ast")
+		return nil
+	})
 	if err := p.Emit(); err != nil {
 		log.Fatal(err)
 	}

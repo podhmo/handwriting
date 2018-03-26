@@ -52,13 +52,14 @@ func (f *File) ImportWithName(path string, name string) {
 		}
 
 		name := name
-		f.imports = append(f.imports, importspec{Name: name, Path: path})
 		if name == "" {
 			name = info.Pkg.Name()
 		}
 		f.File.ImportWithName(info.Pkg, name)
 		return nil
 	})
+	f.imports = append(f.imports, importspec{Name: name, Path: path})
+
 }
 
 type importspec struct {
