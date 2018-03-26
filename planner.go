@@ -42,13 +42,7 @@ func New(pkg *types.Package, ops ...func(*Planner)) (*Planner, error) {
 				return false
 			}
 		}
-
-		// check package, if existed, import as initial package (tentative)
-		if _, err := build.Default.Import(h.Pkg.Path(), ".", build.FindOnly); err != nil {
-			h.Config.CreateFromFiles(h.Pkg.Path())
-		} else {
-			h.Config.Import(h.Pkg.Path())
-		}
+		h.importSelf()
 	}
 	if h.Opener == nil {
 		createIfNotExists := true
@@ -61,18 +55,28 @@ func New(pkg *types.Package, ops ...func(*Planner)) (*Planner, error) {
 	return h, nil
 }
 
+func (h *Planner) importSelf() {
+	// check package, if existed, import as initial package (tentative)
+	if _, err := build.Default.Import(h.Pkg.Path(), ".", build.FindOnly); err != nil {
+		h.Config.CreateFromFiles(h.Pkg.Path())
+	} else {
+		h.Config.Import(h.Pkg.Path())
+	}
+}
+
 // Emit :
 func (h *Planner) Emit() error {
 	prog, err := h.Config.Load()
-	if err != nil {
-		return errors.Wrap(err, "commit")
-	}
 
+	if err != nil {
+		return errors.Wrap(err, "emit, load")
+	}
 	r := &Emitter{
 		Prog:   prog,
 		Pkg:    prog.Package(h.Pkg.Path()),
 		Opener: h.Opener,
 	}
+
 	if r.Pkg.Pkg.Name() == "" {
 		r.Pkg.Pkg.SetName(h.Pkg.Name())
 	}

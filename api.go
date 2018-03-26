@@ -19,6 +19,7 @@ func NewFromPackagePath(path string, ops ...func(*Planner)) (*Planner, error) {
 func WithConfig(c *loader.Config) func(*Planner) {
 	return func(h *Planner) {
 		h.Config = c
+		h.importSelf()
 	}
 }
 

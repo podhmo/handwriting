@@ -39,7 +39,17 @@ func (f *File) ImportWithName(path string, name string) {
 		return
 	}
 	f.used[path] = struct{}{}
-	f.Root.Config.Import(path)
+
+	skipimport := false
+	for _, pkgspec := range f.Root.Config.CreatePkgs {
+		if pkgspec.Path == path {
+			skipimport = true
+			break
+		}
+	}
+	if !skipimport {
+		f.Root.Config.Import(path)
+	}
 
 	if f.Root.Pkg.Path() == path {
 		return
