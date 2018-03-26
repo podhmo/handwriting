@@ -3,24 +3,13 @@ package deriving
 import (
 	"fmt"
 	"go/types"
-	"reflect"
 
 	"github.com/pkg/errors"
 	"github.com/podhmo/handwriting"
+	"github.com/podhmo/handwriting/codegen/typeutil"
 	"github.com/podhmo/handwriting/indent"
 	"golang.org/x/tools/go/loader"
 )
-
-// Scan :
-func Scan(pkg *types.Package) map[types.Type][]types.Object {
-	r := map[types.Type][]types.Object{}
-	s := pkg.Scope()
-	for _, name := range reflect.ValueOf(s).Elem().FieldByName("elems").MapKeys() {
-		ob := s.Lookup(name.String())
-		r[ob.Type()] = append(r[ob.Type()], ob)
-	}
-	return r
-}
 
 // BindStringer :
 func BindStringer(f *handwriting.File, name string) func(e *handwriting.Emitter) error {
@@ -39,7 +28,7 @@ func Stringer(info *loader.PackageInfo, name string, o *indent.Output) error {
 	}
 
 	// todo : reuse
-	typeMap := Scan(info.Pkg)
+	typeMap := typeutil.Scan(info.Pkg)
 
 	o.Println("// String :")
 	o.WithBlock(fmt.Sprintf("func (x %s) String() string", target.Name()), func() {

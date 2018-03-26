@@ -7,25 +7,26 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/podhmo/handwriting"
+	"github.com/podhmo/handwriting/codegen/typesutil"
 	"github.com/podhmo/handwriting/indent"
 	"golang.org/x/tools/go/loader"
 )
 
-// BindToInterface :
-func BindToInterface(f *handwriting.File, path string) func(e *handwriting.Emitter) error {
+// EmitAsInterface :
+func EmitAsInterface(f *handwriting.File, path string, exportedOnly bool) func(e *handwriting.Emitter) error {
 	// <package path>/<name>
 	elems := strings.Split(path, "/")
 	pkgpath := strings.Join(elems[:len(elems)-1], "/")
 	name := elems[len(elems)-1]
 	f.Import(pkgpath)
 	f.Code(func(e *handwriting.Emitter) error {
-		return ToInterface(f, e.Prog.Package(pkgpath), name, e.Output)
+		return AsInterface(f, e.Prog.Package(pkgpath), name, e.Output, exportedOnly)
 	})
 	return nil
 }
 
-// ToInterface :
-func ToInterface(f *handwriting.File, info *loader.PackageInfo, name string, o *indent.Output) error {
+// AsInterface :
+func AsInterface(f *handwriting.File, info *loader.PackageInfo, name string, o *indent.Output, exportedOnly bool) error {
 	target := info.Pkg.Scope().Lookup(name)
 	if target == nil {
 		return errors.Errorf("%q is not found from package %q", name, info.Pkg.Path())
@@ -40,12 +41,21 @@ func ToInterface(f *handwriting.File, info *loader.PackageInfo, name string, o *
 	o.Printfln("// %s :", name)
 	o.WithBlock(fmt.Sprintf("type %s interface", name), func() {
 		n := named.NumMethods()
+
+		// import pkg, if not imported yet.
+		d := typesutil.NewPackageDetector(func(pkg *types.Package) {
+			if pkg != nil {
+				f.Import(pkg.Path())
+			}
+		})
+
 		for i := 0; i < n; i++ {
 			method := named.Method(i)
-			if !method.Exported() {
+			if exportedOnly && !method.Exported() {
 				continue
 			}
-			o.Printfln("%s %s", method.Name(), f.TypeName(method.Type()))
+			d.Detect(method.Type())
+			o.Printfln("%s%s", method.Name(), strings.TrimPrefix(f.TypeName(method.Type()), "func"))
 		}
 	})
 	return nil

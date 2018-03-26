@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go/types"
 	"io"
+	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/podhmo/handwriting/indent"
@@ -36,7 +37,6 @@ func (e *Emitter) Emit(file *File) error {
 		for _, s := range e.File.Headers {
 			e.Output.Println(s)
 		}
-		e.Output.Printf("package %s\n", e.Pkg.Pkg.Name())
 
 		for _, ac := range e.File.Actions {
 			if err := ac(e); err != nil {
@@ -45,26 +45,34 @@ func (e *Emitter) Emit(file *File) error {
 		}
 
 		// emitting import clause, lazily
-		o := indent.New(w)
-		if len(e.File.imports) > 0 {
-			o.Println("")
-			o.Println("import (")
-			o.Indent()
-			// todo : sort
-			for _, im := range e.File.imports {
-				if im.Name == "" {
-					o.Printfln(`%q`, im.Path)
-				} else {
-					o.Printfln(`%s %q`, im.Name, im.Path)
-				}
-			}
-			o.UnIndent()
-			o.Println(")")
-			o.Println("")
-		}
+		e.emitPackage(w)
+
 		io.Copy(w, &body)
 		return nil
 	})
+}
+
+func (e *Emitter) emitPackage(w io.Writer) {
+	o := indent.New(w)
+	o.Printf("package %s\n", e.Pkg.Pkg.Name())
+
+	if len(e.File.imports) > 0 {
+		o.Println("")
+		o.Println("import (")
+		o.Indent()
+		// todo : sort
+		for _, im := range e.File.imports {
+			name := e.File.Imported[im.Path]
+			if im.Path == name || strings.HasSuffix(im.Path, "/"+name) {
+				o.Printfln(`%q`, im.Path)
+			} else {
+				o.Printfln(`%s %q`, name, im.Path)
+			}
+		}
+		o.UnIndent()
+		o.Println(")")
+		o.Println("")
+	}
 }
 
 // Lookup :
