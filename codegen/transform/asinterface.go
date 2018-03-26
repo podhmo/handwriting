@@ -40,14 +40,14 @@ func AsInterface(f *handwriting.File, info *loader.PackageInfo, name string, o *
 	// todo : comment
 	o.Printfln("// %s :", name)
 	o.WithBlock(fmt.Sprintf("type %s interface", name), func() {
-		n := named.NumMethods()
-
 		// import pkg, if not imported yet.
 		d := typesutil.NewPackageDetector(func(pkg *types.Package) {
 			if pkg != nil {
 				f.Import(pkg.Path())
 			}
 		})
+
+		n := named.NumMethods()
 
 		for i := 0; i < n; i++ {
 			method := named.Method(i)

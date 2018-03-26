@@ -9,15 +9,14 @@ import (
 )
 
 func main() {
-	p, err := handwriting.NewFromPackagePath("github.com/podhmo/handwriting", handwriting.WithDryRun())
+	p, err := handwriting.NewFromPackagePath("struct2interface", handwriting.WithDryRun())
 	if err != nil {
 		log.Fatal(err)
 	}
 	f := p.File("f.go")
 
-	pkgname := "net/http"
+	pkgname := "net/http/httptest"
 	f.Import(pkgname)
-	f.ImportWithName("io", "goio")
 
 	f.Code(func(e *handwriting.Emitter) error {
 		ioPkginfo := e.Prog.Package(pkgname)
@@ -29,7 +28,7 @@ func main() {
 				continue
 			}
 			if _, ok := ob.Type().Underlying().(*types.Struct); ok {
-				exportedOnly := true
+				exportedOnly := false
 				transform.AsInterface(f, ioPkginfo, ob.Name(), e.Output, exportedOnly)
 			}
 		}
