@@ -10,7 +10,7 @@ type Type string
 // lookupError :
 type lookupError struct {
 	Type  Type
-	Msg  string
+	Msg   string
 	Where string
 }
 

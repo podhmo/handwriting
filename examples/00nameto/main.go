@@ -8,7 +8,7 @@ import (
 	"go/token"
 	"go/types"
 
-	"github.com/podhmo/handwriting/name"
+	"github.com/podhmo/handwriting/nameresolve"
 	"golang.org/x/tools/go/loader"
 )
 
@@ -41,7 +41,7 @@ type C xloader.Config
 	if err != nil {
 		return err
 	}
-	f := name.New(prog.Package("p").Pkg).File(file)
+	f := nameresolve.New(prog.Package("p").Pkg).File(file)
 
 	ob := prog.Package("golang.org/x/tools/go/loader").Pkg.Scope().Lookup("Config")
 

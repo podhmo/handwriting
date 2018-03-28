@@ -2,13 +2,13 @@ package handwriting
 
 import (
 	"github.com/pkg/errors"
-	"github.com/podhmo/handwriting/name"
+	"github.com/podhmo/handwriting/nameresolve"
 )
 
 // File :
 type File struct {
 	Filename string
-	*name.File
+	*nameresolve.File
 	Root *Planner
 
 	Headers []string

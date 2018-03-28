@@ -3,6 +3,7 @@ package transform
 import (
 	"fmt"
 	"go/types"
+	"log"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -10,6 +11,7 @@ import (
 	"github.com/podhmo/handwriting/codegen/lookup"
 	"github.com/podhmo/handwriting/codegen/typesutil"
 	"github.com/podhmo/handwriting/indent"
+	"github.com/podhmo/handwriting/nameresolve"
 )
 
 // EmitAsFakeStruct :
@@ -57,40 +59,46 @@ func AsFakeStruct(f *handwriting.File, pkg *types.Package, name string, o *inden
 		return errors.Wrap(err, "lookup interface")
 	}
 
+	// import pkg, if not imported yet.
+	d := typesutil.NewPackageDetector(func(pkg *types.Package) {
+		if pkg != nil {
+			f.Import(pkg.Path())
+		}
+	})
+
 	// todo : comment
 	outname := fmt.Sprintf("Fake%s", name)
 	o.Printfln("// %s is fake struct of %s", outname, types.TypeString(target.Type(), types.RelativeTo(f.Root.Pkg)))
 
-	n := iface.NumMethods()
+	// define struct
 	o.WithBlock(fmt.Sprintf("type %s struct", outname), func() {
-		// import pkg, if not imported yet.
-		d := typesutil.NewPackageDetector(func(pkg *types.Package) {
-			if pkg != nil {
-				f.Import(pkg.Path())
-			}
-		})
-
-		for i := 0; i < n; i++ {
-			method := iface.Method(i)
-			if exportedOnly && !method.Exported() {
-				continue
-			}
+		iface.IterateMethods(typesutil.IterateModeFromBool(exportedOnly), func(method *types.Func) {
 			d.Detect(method.Type())
-			o.Printf("%s%s %s", strings.ToLower(method.Name()[0:1]), method.Name()[1:], f.TypeName(method.Type()))
-		}
+			o.Printfln("%s %s", nameresolve.ToUnexported(method.Name()), f.TypeName(method.Type()))
+		})
 	})
 
-	for i := 0; i < n; i++ {
-		method := iface.Method(i)
-		if exportedOnly && !method.Exported() {
-			continue
-		}
+	// define methods
+	iface.IterateMethods(typesutil.IterateModeFromBool(exportedOnly), func(method *types.Func) {
 		sig, _ := method.Type().(*types.Signature)
 		if sig == nil {
-			return errors.New("hmm") // xxx :
+			log.Printf("invalid method? %q doensn't have signature", method.Name())
+			return
 		}
-		o.WithBlock(fmt.Sprintf("func %s %s %s", method.Name(), sig.Params(), sig.Results()), func() {
+		o.Printfln("// %s :", method.Name())
+		o.WithBlock(fmt.Sprintf("func (x *%s) %s %s %s", outname, method.Name(), f.TypeName(sig.Params()), f.TypeNameForResults(sig.Results())), func() {
+			params := sig.Params()
+			varnames := make([]string, params.Len())
+			for i := 0; i < params.Len(); i++ {
+				varnames[i] = params.At(i).Name()
+			}
+
+			if sig.Results().Len() == 0 {
+				o.Printfln("x.%s(%s)", nameresolve.ToUnexported(method.Name()), strings.Join(varnames, ", "))
+				return
+			}
+			o.Printfln("return x.%s(%s)", nameresolve.ToUnexported(method.Name()), strings.Join(varnames, ", "))
 		})
-	}
+	})
 	return nil
 }

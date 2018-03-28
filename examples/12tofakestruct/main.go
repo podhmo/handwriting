@@ -15,8 +15,10 @@ func main() {
 package p
 
 type I interface {
-	F(s string) string
+	F(s string)
 	G(s string) string
+	H(s string) (string, error)
+	K(s string) (xxx string, yyy error)
 }
 `
 	fset := token.NewFileSet()

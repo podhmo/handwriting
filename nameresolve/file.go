@@ -1,4 +1,4 @@
-package name
+package nameresolve
 
 import (
 	"fmt"
@@ -53,6 +53,21 @@ func (f *File) Name(ob types.Object) string {
 
 // TypeName :
 func (f *File) TypeName(typ types.Type) string {
+	return types.TypeString(typ, f.Prefix)
+}
+
+// TypeNameForResults :
+func (f *File) TypeNameForResults(typ types.Type) string {
+	if t, ok := typ.(*types.Tuple); ok {
+		switch t.Len() {
+		case 0:
+			return ""
+		case 1:
+			return types.TypeString(t.At(0).Type(), f.Prefix)
+		default:
+			return types.TypeString(t, f.Prefix)
+		}
+	}
 	return types.TypeString(typ, f.Prefix)
 }
 

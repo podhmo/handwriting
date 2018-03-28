@@ -26,3 +26,11 @@ func IterateObjects(pkg *types.Package, mode IterateMode, fn func(types.Object))
 func IterateAllObjects(pkg *types.Package, fn func(types.Object)) {
 	IterateObjects(pkg, All, fn)
 }
+
+// IterateModeFromBool :
+func IterateModeFromBool(exportedOnly bool) IterateMode {
+	if exportedOnly {
+		return ExportedOnly
+	}
+	return All
+}

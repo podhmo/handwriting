@@ -1,4 +1,4 @@
-package name
+package nameresolve
 
 import (
 	"go/constant"

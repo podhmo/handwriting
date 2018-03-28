@@ -3,6 +3,8 @@ package lookup
 import (
 	"fmt"
 	"go/types"
+
+	"github.com/podhmo/handwriting/codegen/typesutil"
 )
 
 // Object :
@@ -34,12 +36,20 @@ func AsStruct(ob types.Object) (*StructRef, error) {
 }
 
 // IterateMethods :
-func (ref *StructRef) IterateMethods(fn func(*types.Func)) {
-	n := ref.NumMethods()
+func (ref *StructRef) IterateMethods(mode typesutil.IterateMode, fn func(*types.Func)) {
+	named := ref.Named
+	n := named.NumMethods()
 	for i := 0; i < n; i++ {
-		method := ref.Method(i)
-		fn(method)
+		method := named.Method(i)
+		if mode == typesutil.All || (method.Exported() && mode == typesutil.ExportedOnly) {
+			fn(method)
+		}
 	}
+}
+
+// IterateAllMethods :
+func (ref *StructRef) IterateAllMethods(fn func(*types.Func)) {
+	ref.IterateMethods(typesutil.All, fn)
 }
 
 // InterfaceRef :
@@ -59,4 +69,21 @@ func AsInterface(ob types.Object) (*InterfaceRef, error) {
 		return nil, &lookupError{Type: Type("interface"), Msg: fmt.Sprintf("%q is not interface", ob.Name()), Where: ob.Pkg().Path()}
 	}
 	return &InterfaceRef{Named: named, Underlying: underlying}, nil
+}
+
+// IterateMethods :
+func (ref *InterfaceRef) IterateMethods(mode typesutil.IterateMode, fn func(*types.Func)) {
+	iface := ref.Underlying
+	n := iface.NumMethods()
+	for i := 0; i < n; i++ {
+		method := iface.Method(i)
+		if mode == typesutil.All || (method.Exported() && mode == typesutil.ExportedOnly) {
+			fn(method)
+		}
+	}
+}
+
+// IterateAllMethods :
+func (ref *InterfaceRef) IterateAllMethods(fn func(*types.Func)) {
+	ref.IterateMethods(typesutil.All, fn)
 }

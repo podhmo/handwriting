@@ -15,9 +15,9 @@ import (
 
 // Emitter :
 type Emitter struct {
-	Prog   *loader.Program
-	PkgInfo    *loader.PackageInfo
-	Opener multifile.Opener
+	Prog    *loader.Program
+	PkgInfo *loader.PackageInfo
+	Opener  multifile.Opener
 	*indent.Output
 	*File
 }

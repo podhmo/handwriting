@@ -7,7 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/podhmo/handwriting/multifile"
-	"github.com/podhmo/handwriting/name"
+	"github.com/podhmo/handwriting/nameresolve"
 	"golang.org/x/tools/go/loader"
 )
 
@@ -16,7 +16,7 @@ type Planner struct {
 	Pkg    *types.Package
 	Config *loader.Config
 
-	Resolver *name.Resolver
+	Resolver *nameresolve.Resolver
 	Files    map[string]*File
 	Opener   multifile.Opener
 	// options
@@ -27,7 +27,7 @@ type Planner struct {
 func New(pkg *types.Package, ops ...func(*Planner)) (*Planner, error) {
 	h := &Planner{
 		Pkg:      pkg,
-		Resolver: name.New(pkg),
+		Resolver: nameresolve.New(pkg),
 		Files:    map[string]*File{},
 	}
 

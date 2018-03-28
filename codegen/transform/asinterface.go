@@ -41,20 +41,17 @@ func AsInterface(f *handwriting.File, pkg *types.Package, name string, o *indent
 		return errors.Wrap(err, "lookup struct")
 	}
 
+	// import pkg, if not imported yet.
+	d := typesutil.NewPackageDetector(func(pkg *types.Package) {
+		if pkg != nil {
+			f.Import(pkg.Path())
+		}
+	})
+
 	// todo : comment
 	o.Printfln("// %s :", name)
 	o.WithBlock(fmt.Sprintf("type %s interface", name), func() {
-		// import pkg, if not imported yet.
-		d := typesutil.NewPackageDetector(func(pkg *types.Package) {
-			if pkg != nil {
-				f.Import(pkg.Path())
-			}
-		})
-
-		strct.IterateMethods(func(method *types.Func) {
-			if exportedOnly && !method.Exported() {
-                return
-			}
+		strct.IterateMethods(typesutil.IterateModeFromBool(exportedOnly), func(method *types.Func) {
 			d.Detect(method.Type())
 			o.Printfln("%s%s", method.Name(), strings.TrimPrefix(f.TypeName(method.Type()), "func"))
 		})
