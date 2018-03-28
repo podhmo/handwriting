@@ -14,6 +14,9 @@ import (
 	"github.com/podhmo/handwriting/nameresolve"
 )
 
+// TODO : struct's name policy
+// TODO : the subject on method definition, name policy
+
 // EmitAsFakeStruct :
 func EmitAsFakeStruct(f *handwriting.File, path string, exportedOnly bool) func(e *handwriting.Emitter) error {
 	// path = <package path>/<name>
