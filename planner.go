@@ -72,17 +72,17 @@ func (h *Planner) Emit() error {
 		return errors.Wrap(err, "emit, load")
 	}
 	r := &Emitter{
-		Prog:   prog,
-		Pkg:    prog.Package(h.Pkg.Path()),
-		Opener: h.Opener,
+		Prog:    prog,
+		PkgInfo: prog.Package(h.Pkg.Path()),
+		Opener:  h.Opener,
 	}
 
-	if r.Pkg.Pkg.Name() == "" {
-		r.Pkg.Pkg.SetName(h.Pkg.Name())
+	if r.PkgInfo.Pkg.Name() == "" {
+		r.PkgInfo.Pkg.SetName(h.Pkg.Name())
 	}
 	// dummy to concreate package (tentative)
-	h.Pkg = r.Pkg.Pkg
-	h.Resolver.Pkg = r.Pkg.Pkg
+	h.Pkg = r.PkgInfo.Pkg
+	h.Resolver.Pkg = r.PkgInfo.Pkg
 
 	files := make([]*File, 0, len(h.Files))
 	for k := range h.Files {

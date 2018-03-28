@@ -16,7 +16,7 @@ import (
 // Emitter :
 type Emitter struct {
 	Prog   *loader.Program
-	Pkg    *loader.PackageInfo
+	PkgInfo    *loader.PackageInfo
 	Opener multifile.Opener
 	*indent.Output
 	*File
@@ -54,7 +54,7 @@ func (e *Emitter) Emit(file *File) error {
 
 func (e *Emitter) emitPackage(w io.Writer) {
 	o := indent.New(w)
-	o.Printf("package %s\n", e.Pkg.Pkg.Name())
+	o.Printf("package %s\n", e.PkgInfo.Pkg.Name())
 
 	if len(e.File.imports) > 0 {
 		o.Println("")

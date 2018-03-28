@@ -6,6 +6,7 @@ import (
 
 	"github.com/podhmo/handwriting"
 	"github.com/podhmo/handwriting/codegen/transform"
+	"github.com/podhmo/handwriting/codegen/typesutil"
 )
 
 func main() {
@@ -16,22 +17,16 @@ func main() {
 	f := p.File("f.go")
 
 	pkgname := "net/http/httptest"
+
 	f.Import(pkgname)
-
 	f.Code(func(e *handwriting.Emitter) error {
-		ioPkginfo := e.Prog.Package(pkgname)
-		s := ioPkginfo.Pkg.Scope()
-
-		for _, name := range s.Names() {
-			ob := s.Lookup(name)
-			if !ob.Exported() {
-				continue
-			}
+		ioPkg := e.Prog.Package(pkgname).Pkg
+		typesutil.IterateAllObjects(ioPkg, func(ob types.Object) {
 			if _, ok := ob.Type().Underlying().(*types.Struct); ok {
 				exportedOnly := false
-				transform.AsInterface(f, ioPkginfo, ob.Name(), e.Output, exportedOnly)
+				transform.AsInterface(f, ioPkg, ob.Name(), e.Output, exportedOnly)
 			}
-		}
+		})
 		return nil
 	})
 

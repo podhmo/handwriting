@@ -7,20 +7,25 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/podhmo/handwriting"
+	"github.com/podhmo/handwriting/codegen/lookup"
 	"github.com/podhmo/handwriting/codegen/typesutil"
 	"github.com/podhmo/handwriting/indent"
-	"golang.org/x/tools/go/loader"
 )
 
 // EmitAsFakeStruct :
 func EmitAsFakeStruct(f *handwriting.File, path string, exportedOnly bool) func(e *handwriting.Emitter) error {
-	// <package path>/<name>
+	// path = <package path>/<name>
 	elems := strings.Split(path, "/")
 	pkgpath := strings.Join(elems[:len(elems)-1], "/")
 	name := elems[len(elems)-1]
+
 	f.Import(pkgpath)
 	f.Code(func(e *handwriting.Emitter) error {
-		return AsFakeStruct(f, e.Prog.Package(pkgpath), name, e.Output, exportedOnly)
+		info, err := lookup.PackageInfo(e.Prog, pkgpath)
+		if info == nil {
+			return errors.Wrap(err, "lookup pacakge")
+		}
+		return AsFakeStruct(f, info.Pkg, name, e.Output, exportedOnly)
 	})
 	return nil
 }
@@ -42,19 +47,14 @@ func (x *FakeI) F(x string) string {
 */
 
 // AsFakeStruct :
-func AsFakeStruct(f *handwriting.File, info *loader.PackageInfo, name string, o *indent.Output, exportedOnly bool) error {
-	target := info.Pkg.Scope().Lookup(name)
-	if target == nil {
-		return errors.Errorf("%q is not found from package %q", name, info.Pkg.Path())
+func AsFakeStruct(f *handwriting.File, pkg *types.Package, name string, o *indent.Output, exportedOnly bool) error {
+	target, err := lookup.Object(pkg, name)
+	if err != nil {
+		return errors.Wrap(err, "lookup target")
 	}
-
-	named, _ := target.Type().(*types.Named)
-	if named == nil {
-		return errors.Errorf("%q is not interface", name)
-	}
-	iface, _ := named.Underlying().(*types.Interface)
-	if iface == nil {
-		return errors.Errorf("%q is not interface", name)
+	iface, err := lookup.AsInterface(target)
+	if err != nil {
+		return errors.Wrap(err, "lookup interface")
 	}
 
 	// todo : comment

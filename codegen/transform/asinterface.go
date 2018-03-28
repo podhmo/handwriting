@@ -7,34 +7,38 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/podhmo/handwriting"
+	"github.com/podhmo/handwriting/codegen/lookup"
 	"github.com/podhmo/handwriting/codegen/typesutil"
 	"github.com/podhmo/handwriting/indent"
-	"golang.org/x/tools/go/loader"
 )
 
 // EmitAsInterface :
 func EmitAsInterface(f *handwriting.File, path string, exportedOnly bool) func(e *handwriting.Emitter) error {
-	// <package path>/<name>
+	// path = <package path>/<name>
 	elems := strings.Split(path, "/")
 	pkgpath := strings.Join(elems[:len(elems)-1], "/")
 	name := elems[len(elems)-1]
+
 	f.Import(pkgpath)
 	f.Code(func(e *handwriting.Emitter) error {
-		return AsInterface(f, e.Prog.Package(pkgpath), name, e.Output, exportedOnly)
+		info, err := lookup.PackageInfo(e.Prog, pkgpath)
+		if info == nil {
+			return errors.Wrap(err, "lookup pacakge")
+		}
+		return AsInterface(f, info.Pkg, name, e.Output, exportedOnly)
 	})
 	return nil
 }
 
 // AsInterface :
-func AsInterface(f *handwriting.File, info *loader.PackageInfo, name string, o *indent.Output, exportedOnly bool) error {
-	target := info.Pkg.Scope().Lookup(name)
-	if target == nil {
-		return errors.Errorf("%q is not found from package %q", name, info.Pkg.Path())
+func AsInterface(f *handwriting.File, pkg *types.Package, name string, o *indent.Output, exportedOnly bool) error {
+	target, err := lookup.Object(pkg, name)
+	if err != nil {
+		return errors.Wrap(err, "lookup target")
 	}
-
-	named, _ := target.Type().(*types.Named)
-	if named == nil {
-		return errors.Errorf("%q is not struct", name)
+	strct, err := lookup.AsStruct(target)
+	if err != nil {
+		return errors.Wrap(err, "lookup struct")
 	}
 
 	// todo : comment
@@ -47,16 +51,13 @@ func AsInterface(f *handwriting.File, info *loader.PackageInfo, name string, o *
 			}
 		})
 
-		n := named.NumMethods()
-
-		for i := 0; i < n; i++ {
-			method := named.Method(i)
+		strct.IterateMethods(func(method *types.Func) {
 			if exportedOnly && !method.Exported() {
-				continue
+                return
 			}
 			d.Detect(method.Type())
 			o.Printfln("%s%s", method.Name(), strings.TrimPrefix(f.TypeName(method.Type()), "func"))
-		}
+		})
 	})
 	return nil
 }
