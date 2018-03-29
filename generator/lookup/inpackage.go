@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"go/types"
 
-	"github.com/podhmo/handwriting/codegen/typesutil"
+	"github.com/podhmo/handwriting/generator/typesutil"
 )
 
 // Object :

@@ -6,13 +6,13 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/podhmo/handwriting"
-	"github.com/podhmo/handwriting/codegen/lookup"
-	"github.com/podhmo/handwriting/codegen/typesutil"
+	"github.com/podhmo/handwriting/generator/lookup"
+	"github.com/podhmo/handwriting/generator/typesutil"
 	"github.com/podhmo/handwriting/indent"
 )
 
-// BindStringer :
-func BindStringer(f *handwriting.File, name string) func(e *handwriting.Emitter) error {
+// GenerateStringer :
+func GenerateStringer(f *handwriting.File, name string) func(e *handwriting.Emitter) error {
 	f.Import("fmt")
 	f.Code(func(e *handwriting.Emitter) error {
 		return Stringer(e.PkgInfo.Pkg, name, e.Output)

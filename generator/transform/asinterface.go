@@ -7,13 +7,13 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/podhmo/handwriting"
-	"github.com/podhmo/handwriting/codegen/lookup"
-	"github.com/podhmo/handwriting/codegen/typesutil"
+	"github.com/podhmo/handwriting/generator/lookup"
+	"github.com/podhmo/handwriting/generator/typesutil"
 	"github.com/podhmo/handwriting/indent"
 )
 
-// EmitAsInterface :
-func EmitAsInterface(f *handwriting.File, path string, exportedOnly bool) func(e *handwriting.Emitter) error {
+// GenerateInterface :
+func GenerateInterface(f *handwriting.File, path string, exportedOnly bool) func(e *handwriting.Emitter) error {
 	// path = <package path>/<name>
 	elems := strings.Split(path, "/")
 	pkgpath := strings.Join(elems[:len(elems)-1], "/")

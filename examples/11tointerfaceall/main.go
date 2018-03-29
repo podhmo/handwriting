@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/podhmo/handwriting"
-	"github.com/podhmo/handwriting/codegen/transform"
-	"github.com/podhmo/handwriting/codegen/typesutil"
+	"github.com/podhmo/handwriting/generator/transform"
+	"github.com/podhmo/handwriting/generator/typesutil"
 )
 
 func main() {

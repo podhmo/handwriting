@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/podhmo/handwriting"
-	"github.com/podhmo/handwriting/codegen/transform"
+	"github.com/podhmo/handwriting/generator/transform"
 )
 
 func main() {
@@ -15,9 +15,9 @@ func main() {
 	f := p.File("f.go")
 
 	// adding package import code for indirectly impored
-	transform.EmitAsInterface(f, "golang.org/x/tools/go/loader/Program", true)
+	transform.GenerateInterface(f, "golang.org/x/tools/go/loader/Program", true)
 
-	transform.EmitAsInterface(f, "github.com/podhmo/handwriting/File", true)
+	transform.GenerateInterface(f, "github.com/podhmo/handwriting/File", true)
 
 	if err := p.Emit(); err != nil {
 		log.Fatal(err)

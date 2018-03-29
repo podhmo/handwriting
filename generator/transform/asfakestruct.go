@@ -8,8 +8,8 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/podhmo/handwriting"
-	"github.com/podhmo/handwriting/codegen/lookup"
-	"github.com/podhmo/handwriting/codegen/typesutil"
+	"github.com/podhmo/handwriting/generator/lookup"
+	"github.com/podhmo/handwriting/generator/typesutil"
 	"github.com/podhmo/handwriting/indent"
 	"github.com/podhmo/handwriting/nameresolve"
 )
@@ -17,8 +17,8 @@ import (
 // TODO : struct's name policy
 // TODO : the subject on method definition, name policy
 
-// EmitAsFakeStruct :
-func EmitAsFakeStruct(f *handwriting.File, path string, exportedOnly bool) func(e *handwriting.Emitter) error {
+// GenerateFakeStruct :
+func GenerateFakeStruct(f *handwriting.File, path string, exportedOnly bool) func(e *handwriting.Emitter) error {
 	// path = <package path>/<name>
 	elems := strings.Split(path, "/")
 	pkgpath := strings.Join(elems[:len(elems)-1], "/")

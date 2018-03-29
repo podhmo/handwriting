@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/podhmo/handwriting"
-	"github.com/podhmo/handwriting/codegen/transform"
+	"github.com/podhmo/handwriting/generator/transform"
 	"golang.org/x/tools/go/loader"
 )
 
@@ -35,7 +35,7 @@ type I interface {
 	}
 
 	f := p.File("f.go")
-	transform.EmitAsFakeStruct(f, "p/I", false)
+	transform.GenerateFakeStruct(f, "p/I", false)
 	if err := p.Emit(); err != nil {
 		log.Fatalf("%+v", err)
 	}
