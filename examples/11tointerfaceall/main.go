@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	p, err := handwriting.NewFromPackagePath("struct2interface", handwriting.WithDryRun())
+	p, err := handwriting.NewFromPackagePath("struct2interface", handwriting.WithConsoleOutput())
 	if err != nil {
 		log.Fatal(err)
 	}

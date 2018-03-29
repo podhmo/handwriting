@@ -29,7 +29,7 @@ type I interface {
 	c := loader.Config{Fset: fset}
 	c.CreateFromFiles("p", astf)
 
-	p, err := handwriting.NewFromPackagePath("x", handwriting.WithDryRun(), handwriting.WithConfig(&c))
+	p, err := handwriting.NewFromPackagePath("x", handwriting.WithConsoleOutput(), handwriting.WithConfig(&c))
 	if err != nil {
 		log.Fatal(err)
 	}

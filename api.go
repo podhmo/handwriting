@@ -30,7 +30,7 @@ func WithOpener(o multifile.Opener) func(*Planner) {
 	}
 }
 
-// WithDryRun :
-func WithDryRun() func(*Planner) {
-	return WithOpener(multifile.Stderr())
+// WithConsoleOutput :
+func WithConsoleOutput() func(*Planner) {
+	return WithOpener(multifile.Stdout())
 }
