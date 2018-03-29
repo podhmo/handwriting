@@ -3,6 +3,7 @@ package lookup
 import (
 	"fmt"
 	"go/types"
+	"log"
 
 	"github.com/podhmo/handwriting/generator/typesutil"
 )
@@ -72,18 +73,29 @@ func AsInterface(ob types.Object) (*InterfaceRef, error) {
 }
 
 // IterateMethods :
-func (ref *InterfaceRef) IterateMethods(mode typesutil.IterateMode, fn func(*types.Func)) {
+func (ref *InterfaceRef) IterateMethods(mode typesutil.IterateMode, fn func(*FuncRef)) {
 	iface := ref.Underlying
 	n := iface.NumMethods()
 	for i := 0; i < n; i++ {
 		method := iface.Method(i)
 		if mode == typesutil.All || (method.Exported() && mode == typesutil.ExportedOnly) {
-			fn(method)
+			sig, _ := method.Type().(*types.Signature)
+			if sig == nil {
+				log.Printf("invalid method? %q doensn't have signature", method.Name())
+				continue
+			}
+			fn(&FuncRef{Func: method, Signature: sig})
 		}
 	}
 }
 
 // IterateAllMethods :
-func (ref *InterfaceRef) IterateAllMethods(fn func(*types.Func)) {
+func (ref *InterfaceRef) IterateAllMethods(fn func(*FuncRef)) {
 	ref.IterateMethods(typesutil.All, fn)
+}
+
+// FuncRef :
+type FuncRef struct {
+	*types.Func
+	Signature *types.Signature
 }

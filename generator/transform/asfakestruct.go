@@ -3,7 +3,6 @@ package transform
 import (
 	"fmt"
 	"go/types"
-	"log"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -75,22 +74,19 @@ func AsFakeStruct(f *handwriting.File, pkg *types.Package, name string, o *inden
 
 	// define struct
 	o.WithBlock(fmt.Sprintf("type %s struct", outname), func() {
-		iface.IterateMethods(typesutil.IterateModeFromBool(exportedOnly), func(method *types.Func) {
+		iface.IterateMethods(typesutil.IterateModeFromBool(exportedOnly), func(method *lookup.FuncRef) {
 			d.Detect(method.Type())
 			o.Printfln("%s %s", nameresolve.ToUnexported(method.Name()), f.TypeName(method.Type()))
 		})
 	})
 
 	// define methods
-	iface.IterateMethods(typesutil.IterateModeFromBool(exportedOnly), func(method *types.Func) {
-		sig, _ := method.Type().(*types.Signature)
-		if sig == nil {
-			log.Printf("invalid method? %q doensn't have signature", method.Name())
-			return
-		}
+	iface.IterateMethods(typesutil.IterateModeFromBool(exportedOnly), func(method *lookup.FuncRef) {
+		sig := method.Signature
 		o.Printfln("// %s :", method.Name())
 		o.WithBlock(fmt.Sprintf("func (x *%s) %s %s %s", outname, method.Name(), f.TypeName(sig.Params()), f.TypeNameForResults(sig.Results())), func() {
 			params := sig.Params()
+
 			varnames := make([]string, params.Len())
 			for i := 0; i < params.Len(); i++ {
 				varnames[i] = params.At(i).Name()

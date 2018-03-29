@@ -41,6 +41,7 @@ func New(pkg *types.Package, ops ...func(*Planner)) (*Planner, error) {
 			h.Config.TypeCheckFuncBodies = func(path string) bool {
 				return false
 			}
+			h.Config.TypeChecker.DisableUnusedImportCheck = true
 		}
 		h.importSelf()
 	}
@@ -57,11 +58,12 @@ func New(pkg *types.Package, ops ...func(*Planner)) (*Planner, error) {
 
 func (h *Planner) importSelf() {
 	// check package, if existed, import as initial package (tentative)
-	if _, err := build.Default.Import(h.Pkg.Path(), ".", build.FindOnly); err != nil {
+	bpkg, err := build.Default.Import(h.Pkg.Path(), ".", build.FindOnly)
+	if err != nil || len(bpkg.GoFiles) == 0 {
 		h.Config.CreateFromFiles(h.Pkg.Path())
-	} else {
-		h.Config.Import(h.Pkg.Path())
+		return
 	}
+	h.Config.Import(h.Pkg.Path())
 }
 
 // Emit :
@@ -77,9 +79,14 @@ func (h *Planner) Emit() error {
 		Opener:  h.Opener,
 	}
 
+	if r.PkgInfo == nil {
+		return errors.Errorf("%q package is not found", h.Pkg.Path())
+	}
+
 	if r.PkgInfo.Pkg.Name() == "" {
 		r.PkgInfo.Pkg.SetName(h.Pkg.Name())
 	}
+
 	// dummy to concreate package (tentative)
 	h.Pkg = r.PkgInfo.Pkg
 	h.Resolver.Pkg = r.PkgInfo.Pkg
