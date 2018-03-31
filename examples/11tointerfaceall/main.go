@@ -20,11 +20,19 @@ func main() {
 
 	f.Import(pkgname)
 	f.Code(func(f *handwriting.File) error {
-		ioPkg := f.Prog.Package(pkgname).Pkg
-		typesutil.IterateAllObjects(ioPkg, func(ob types.Object) {
+		g := transform.GeneratorForStructAsInterfaceNew(f)
+		pkg, err := f.Use(pkgname)
+		if err != nil {
+			return err
+		}
+
+		var rerr error
+		typesutil.IterateAllObjects(pkg.Package, func(ob types.Object) {
 			if _, ok := ob.Type().Underlying().(*types.Struct); ok {
 				exportedOnly := false
-				transform.AsInterface(f, ioPkg, ob.Name(), f.Out, exportedOnly)
+				if err := g.Generate(pkgname, ob.Name(), exportedOnly); err != nil {
+					rerr = err
+				}
 			}
 		})
 		return nil

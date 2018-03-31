@@ -22,7 +22,7 @@ type File struct {
 // TODO : import mapping
 
 // Use :
-func (f *File) Use(name string) (*types.Package, error) {
+func (f *File) Use(name string) (*lookup.PackageRef, error) {
 	if name != "" {
 		for _, im := range f.sourcefile.imports {
 			if im.Name == name {
@@ -34,7 +34,7 @@ func (f *File) Use(name string) (*types.Package, error) {
 }
 
 // MustUse :
-func (f *File) MustUse(name string) *types.Package {
+func (f *File) MustUse(name string) *lookup.PackageRef {
 	pkg, err := f.Use(name)
 	if err != nil {
 		panic(err.Error())

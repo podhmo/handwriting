@@ -99,3 +99,16 @@ type FuncRef struct {
 	*types.Func
 	Signature *types.Signature
 }
+
+// AsFunc :
+func AsFunc(ob types.Object) (*FuncRef, error) {
+	fn, _ := ob.(*types.Func)
+	if fn == nil {
+		return nil, &lookupError{Type: Type("func"), Msg: fmt.Sprintf("%q is not func", ob.Name()), Where: ob.Pkg().Path()}
+	}
+	signature, _ := fn.Type().(*types.Signature)
+	if signature == nil {
+		return &FuncRef{Func: fn, Signature: signature}, nil
+	}
+	return &FuncRef{Func: fn, Signature: signature}, nil
+}

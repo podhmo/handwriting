@@ -4,7 +4,6 @@ import (
 	"log"
 
 	"github.com/podhmo/handwriting"
-	"github.com/podhmo/handwriting/generator/lookup"
 )
 
 func main() {
@@ -23,13 +22,12 @@ func run() error {
 
 	f.ImportWithName("fmt", "xfmt")
 	f.Code(func(f *handwriting.File) error {
-		// todo: nil safe (not panic)
 		fmtpkg, err := f.Use("xfmt")
 		if err != nil {
 			return err
 		}
 
-		println, err := lookup.Object(fmtpkg, "Println")
+		println, err := fmtpkg.LookupFunc("Println")
 		if err != nil {
 			return err
 		}

@@ -2,14 +2,12 @@ package transform
 
 import (
 	"fmt"
-	"go/types"
 	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/podhmo/handwriting"
 	"github.com/podhmo/handwriting/generator/lookup"
 	"github.com/podhmo/handwriting/generator/typesutil"
-	"github.com/podhmo/handwriting/indent"
 	"github.com/podhmo/handwriting/nameresolve"
 )
 
@@ -17,7 +15,7 @@ import (
 // TODO : the subject on method definition, name policy
 
 // GenerateFakeStruct :
-func GenerateFakeStruct(f *handwriting.PlanningFile, path string, exportedOnly bool) func(e *handwriting.Emitter) error {
+func GenerateFakeStruct(f *handwriting.PlanningFile, path string, exportedOnly bool) error {
 	// path = <package path>/<name>
 	elems := strings.Split(path, "/")
 	pkgpath := strings.Join(elems[:len(elems)-1], "/")
@@ -25,11 +23,8 @@ func GenerateFakeStruct(f *handwriting.PlanningFile, path string, exportedOnly b
 
 	f.Import(pkgpath)
 	f.Code(func(f *handwriting.File) error {
-		pkg, err := lookup.Package(f.Prog, pkgpath)
-		if pkg == nil {
-			return errors.Wrap(err, "lookup pacakge")
-		}
-		return AsFakeStruct(f, pkg, name, f.Out, exportedOnly)
+		g := GeneratorForFakeStructNew(f)
+		return g.Generate(pkgpath, name, "fake"+name, exportedOnly)
 	})
 	return nil
 }
@@ -50,29 +45,41 @@ func (x *FakeI) F(x string) string {
 }
 */
 
-// AsFakeStruct :
-func AsFakeStruct(f *handwriting.File, pkg *types.Package, name string, o *indent.Output, exportedOnly bool) error {
-	target, err := lookup.Object(pkg, name)
-	if err != nil {
-		return errors.Wrap(err, "lookup target")
+// GeneratorForFakeStruct :
+type GeneratorForFakeStruct struct {
+	f *handwriting.File
+	d *typesutil.PackageDetector
+}
+
+// GeneratorForFakeStructNew :
+func GeneratorForFakeStructNew(f *handwriting.File) *GeneratorForFakeStruct {
+	return &GeneratorForFakeStruct{
+		f: f,
+		d: f.CreateCaptureImportDetector(),
 	}
-	iface, err := lookup.AsInterface(target)
+}
+
+// Generate :
+func (g *GeneratorForFakeStruct) Generate(pkgpath, name, outname string, exportedOnly bool) error {
+	pkg, err := g.f.Use(pkgpath)
+	if err != nil {
+		return errors.Wrap(err, "lookup package")
+	}
+	iface, err := pkg.LookupInterface(name)
 	if err != nil {
 		return errors.Wrap(err, "lookup interface")
 	}
 
-	// import pkg, if not imported yet.
-	d := f.CreateCaptureImportDetector()
-
 	// todo : comment
-	outname := fmt.Sprintf("Fake%s", name)
-	o.Printfln("// %s is fake struct of %s", outname, types.TypeString(target.Type(), types.RelativeTo(f.PkgInfo.Pkg)))
+	o := g.f.Out
+	r := g.f.Resolver
+	o.Printfln("// %s is fake struct of %s.%s", outname, g.f.PkgInfo.Pkg.Name(), name)
 
 	// define struct
 	o.WithBlock(fmt.Sprintf("type %s struct", outname), func() {
 		iface.IterateMethods(typesutil.IterateModeFromBool(exportedOnly), func(method *lookup.FuncRef) {
-			d.Detect(method.Type())
-			o.Printfln("%s %s", nameresolve.ToUnexported(method.Name()), f.Resolver.TypeName(method.Type()))
+			g.d.Detect(method.Type())
+			o.Printfln("%s %s", nameresolve.ToUnexported(method.Name()), r.TypeName(method.Type()))
 		})
 	})
 
@@ -80,7 +87,7 @@ func AsFakeStruct(f *handwriting.File, pkg *types.Package, name string, o *inden
 	iface.IterateMethods(typesutil.IterateModeFromBool(exportedOnly), func(method *lookup.FuncRef) {
 		sig := method.Signature
 		o.Printfln("// %s :", method.Name())
-		o.WithBlock(fmt.Sprintf("func (x *%s) %s %s %s", outname, method.Name(), f.Resolver.TypeName(sig.Params()), f.Resolver.TypeNameForResults(sig.Results())), func() {
+		o.WithBlock(fmt.Sprintf("func (x *%s) %s %s %s", outname, method.Name(), r.TypeName(sig.Params()), r.TypeNameForResults(sig.Results())), func() {
 			params := sig.Params()
 
 			varnames := make([]string, params.Len())
