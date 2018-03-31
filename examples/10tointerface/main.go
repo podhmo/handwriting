@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	p, err := handwriting.NewFromPackagePath("github.com/podhmo/handwriting", handwriting.WithConsoleOutput())
+	p, err := handwriting.New("github.com/podhmo/handwriting", handwriting.WithConsoleOutput())
 	if err != nil {
 		log.Fatal(err)
 	}

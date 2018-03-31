@@ -1,8 +1,6 @@
 package main
 
 import (
-	"go/parser"
-	"go/token"
 	"log"
 
 	"github.com/podhmo/handwriting"
@@ -21,15 +19,14 @@ type I interface {
 	K(s string) (xxx string, yyy error)
 }
 `
-	fset := token.NewFileSet()
-	astf, err := parser.ParseFile(fset, "f.go", source, parser.ParseComments)
+	c := loader.Config{}
+	astf, err := c.ParseFile("f.go", source)
 	if err != nil {
 		log.Fatal(err)
 	}
-	c := loader.Config{Fset: fset}
 	c.CreateFromFiles("p", astf)
 
-	p, err := handwriting.NewFromPackagePath("x", handwriting.WithConsoleOutput(), handwriting.WithConfig(&c))
+	p, err := handwriting.New("x", handwriting.WithConsoleOutput(), handwriting.WithConfig(&c))
 	if err != nil {
 		log.Fatal(err)
 	}

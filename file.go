@@ -1,72 +1,40 @@
 package handwriting
 
 import (
-	"github.com/pkg/errors"
+	"go/types"
+
+	"github.com/podhmo/handwriting/generator/typesutil"
+	"github.com/podhmo/handwriting/indent"
 	"github.com/podhmo/handwriting/nameresolve"
+	"golang.org/x/tools/go/loader"
 )
 
 // File :
 type File struct {
-	Filename string
-	*nameresolve.File
-	Root *Planner
-
-	Setups  []func(*Emitter) error
-	Actions []func(*Emitter) error
-	imports []importspec
-	used    map[string]struct{}
+	sourcefile *PlanningFile
+	Prog       *loader.Program
+	PkgInfo    *loader.PackageInfo
+	Resolver   *nameresolve.File
+	Out        *indent.Output
 }
 
-// Code :
-func (f *File) Code(fn func(*Emitter) error) {
-	f.Actions = append(f.Actions, fn)
+// TODO : import mapping
+
+// // Package :
+// func (f *File) Package(name string) *loader.PackageInfo {
+// 	return f.Prog.Package(name)
+// }
+
+// FileName :
+func (f *File) FileName() string {
+	return f.sourcefile.Filename
 }
 
-// Import :
-func (f *File) Import(path string) {
-	f.ImportWithName(path, "")
-}
-
-// ImportWithName :
-func (f *File) ImportWithName(path string, name string) {
-	if _, existed := f.used[path]; existed {
-		return
-	}
-	f.used[path] = struct{}{}
-
-	skipimport := false
-	for _, pkgspec := range f.Root.Config.CreatePkgs {
-		if pkgspec.Path == path {
-			skipimport = true
-			break
+// CreateCaptureImportDetector :
+func (f *File) CreateCaptureImportDetector() *typesutil.PackageDetector {
+	return typesutil.NewPackageDetector(func(pkg *types.Package) {
+		if pkg != nil {
+			f.sourcefile.Import(pkg.Path())
 		}
-	}
-	if !skipimport {
-		f.Root.Config.Import(path)
-	}
-
-	if f.Root.Pkg.Path() == path {
-		return
-	}
-
-	f.Setups = append(f.Setups, func(s *Emitter) error {
-		info := s.Prog.Package(path)
-		if info == nil {
-			return errors.Errorf("package not found %q", path)
-		}
-
-		name := name
-		if name == "" {
-			name = info.Pkg.Name()
-		}
-		f.File.ImportWithName(info.Pkg, name)
-		return nil
 	})
-	f.imports = append(f.imports, importspec{Name: name, Path: path})
-
-}
-
-type importspec struct {
-	Name string
-	Path string
 }

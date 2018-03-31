@@ -17,19 +17,19 @@ import (
 // TODO : the subject on method definition, name policy
 
 // GenerateFakeStruct :
-func GenerateFakeStruct(f *handwriting.File, path string, exportedOnly bool) func(e *handwriting.Emitter) error {
+func GenerateFakeStruct(f *handwriting.PlanningFile, path string, exportedOnly bool) func(e *handwriting.Emitter) error {
 	// path = <package path>/<name>
 	elems := strings.Split(path, "/")
 	pkgpath := strings.Join(elems[:len(elems)-1], "/")
 	name := elems[len(elems)-1]
 
 	f.Import(pkgpath)
-	f.Code(func(e *handwriting.Emitter) error {
-		info, err := lookup.PackageInfo(e.Prog, pkgpath)
+	f.Code(func(f *handwriting.File) error {
+		info, err := lookup.PackageInfo(f.Prog, pkgpath)
 		if info == nil {
 			return errors.Wrap(err, "lookup pacakge")
 		}
-		return AsFakeStruct(f, info.Pkg, name, e.Output, exportedOnly)
+		return AsFakeStruct(f, info.Pkg, name, f.Out, exportedOnly)
 	})
 	return nil
 }
@@ -62,21 +62,17 @@ func AsFakeStruct(f *handwriting.File, pkg *types.Package, name string, o *inden
 	}
 
 	// import pkg, if not imported yet.
-	d := typesutil.NewPackageDetector(func(pkg *types.Package) {
-		if pkg != nil {
-			f.Import(pkg.Path())
-		}
-	})
+	d := f.CreateCaptureImportDetector()
 
 	// todo : comment
 	outname := fmt.Sprintf("Fake%s", name)
-	o.Printfln("// %s is fake struct of %s", outname, types.TypeString(target.Type(), types.RelativeTo(f.Root.Pkg)))
+	o.Printfln("// %s is fake struct of %s", outname, types.TypeString(target.Type(), types.RelativeTo(f.PkgInfo.Pkg)))
 
 	// define struct
 	o.WithBlock(fmt.Sprintf("type %s struct", outname), func() {
 		iface.IterateMethods(typesutil.IterateModeFromBool(exportedOnly), func(method *lookup.FuncRef) {
 			d.Detect(method.Type())
-			o.Printfln("%s %s", nameresolve.ToUnexported(method.Name()), f.TypeName(method.Type()))
+			o.Printfln("%s %s", nameresolve.ToUnexported(method.Name()), f.Resolver.TypeName(method.Type()))
 		})
 	})
 
@@ -84,7 +80,7 @@ func AsFakeStruct(f *handwriting.File, pkg *types.Package, name string, o *inden
 	iface.IterateMethods(typesutil.IterateModeFromBool(exportedOnly), func(method *lookup.FuncRef) {
 		sig := method.Signature
 		o.Printfln("// %s :", method.Name())
-		o.WithBlock(fmt.Sprintf("func (x *%s) %s %s %s", outname, method.Name(), f.TypeName(sig.Params()), f.TypeNameForResults(sig.Results())), func() {
+		o.WithBlock(fmt.Sprintf("func (x *%s) %s %s %s", outname, method.Name(), f.Resolver.TypeName(sig.Params()), f.Resolver.TypeNameForResults(sig.Results())), func() {
 			params := sig.Params()
 
 			varnames := make([]string, params.Len())
