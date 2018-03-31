@@ -4,11 +4,8 @@ import (
 	"log"
 
 	"github.com/podhmo/handwriting"
+	"github.com/podhmo/handwriting/generator/lookup"
 )
-
-// TODO:
-// - finding unexisted package
-// - finding unexisted member of package
 
 func main() {
 	if err := run(); err != nil {
@@ -27,7 +24,15 @@ func run() error {
 	f.ImportWithName("fmt", "xfmt")
 	f.Code(func(f *handwriting.File) error {
 		// todo: nil safe (not panic)
-		println := f.Prog.Package("fmt").Pkg.Scope().Lookup("Println")
+		fmtpkg, err := f.Use("xfmt")
+		if err != nil {
+			return err
+		}
+
+		println, err := lookup.Object(fmtpkg, "Println")
+		if err != nil {
+			return err
+		}
 
 		f.Out.Println("// F :")
 		f.Out.WithBlock("func F(x int)", func() {

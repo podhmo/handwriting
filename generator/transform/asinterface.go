@@ -21,11 +21,11 @@ func GenerateInterface(f *handwriting.PlanningFile, path string, exportedOnly bo
 
 	f.Import(pkgpath)
 	f.Code(func(f *handwriting.File) error {
-		info, err := lookup.PackageInfo(f.Prog, pkgpath)
-		if info == nil {
+		pkg, err := lookup.Package(f.Prog, pkgpath)
+		if pkg == nil {
 			return errors.Wrap(err, "lookup pacakge")
 		}
-		return AsInterface(f, info.Pkg, name, f.Out, exportedOnly)
+		return AsInterface(f, pkg, name, f.Out, exportedOnly)
 	})
 	return nil
 }
