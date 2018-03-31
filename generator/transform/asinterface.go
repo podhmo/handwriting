@@ -13,19 +13,19 @@ import (
 )
 
 // GenerateInterface :
-func GenerateInterface(f *handwriting.File, path string, exportedOnly bool) func(e *handwriting.Emitter) error {
+func GenerateInterface(f *handwriting.PlanningFile, path string, exportedOnly bool) func(e *handwriting.Emitter) error {
 	// path = <package path>/<name>
 	elems := strings.Split(path, "/")
 	pkgpath := strings.Join(elems[:len(elems)-1], "/")
 	name := elems[len(elems)-1]
 
 	f.Import(pkgpath)
-	f.Code(func(e *handwriting.Emitter) error {
-		info, err := lookup.PackageInfo(e.Prog, pkgpath)
+	f.Code(func(f *handwriting.File) error {
+		info, err := lookup.PackageInfo(f.Prog, pkgpath)
 		if info == nil {
 			return errors.Wrap(err, "lookup pacakge")
 		}
-		return AsInterface(f, info.Pkg, name, e.Output, exportedOnly)
+		return AsInterface(f, info.Pkg, name, f.Out, exportedOnly)
 	})
 	return nil
 }
@@ -42,18 +42,14 @@ func AsInterface(f *handwriting.File, pkg *types.Package, name string, o *indent
 	}
 
 	// import pkg, if not imported yet.
-	d := typesutil.NewPackageDetector(func(pkg *types.Package) {
-		if pkg != nil {
-			f.Import(pkg.Path())
-		}
-	})
+	d := f.CreateCaptureImportDetector()
 
 	// todo : comment
 	o.Printfln("// %s :", name)
 	o.WithBlock(fmt.Sprintf("type %s interface", name), func() {
 		strct.IterateMethods(typesutil.IterateModeFromBool(exportedOnly), func(method *types.Func) {
 			d.Detect(method.Type())
-			o.Printfln("%s%s", method.Name(), strings.TrimPrefix(f.TypeName(method.Type()), "func"))
+			o.Printfln("%s%s", method.Name(), strings.TrimPrefix(f.Resolver.TypeName(method.Type()), "func"))
 		})
 	})
 	return nil

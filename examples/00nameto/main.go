@@ -18,20 +18,18 @@ func main() {
 func run() error {
 	c := loader.Config{TypeCheckFuncBodies: func(path string) bool { return false }}
 
-	{
-		src := `package p
+	src := `package p
 import (
 	xloader "golang.org/x/tools/go/loader"
 )
 type C xloader.Config
 `
-		file, err := c.ParseFile("f0.go", src)
-		if err != nil {
-			return err
-		}
-
-		c.CreateFromFiles("p", file)
+	file, err := c.ParseFile("f0.go", src)
+	if err != nil {
+		return err
 	}
+
+	c.CreateFromFiles("p", file)
 
 	prog, err := c.Load()
 	if err != nil {

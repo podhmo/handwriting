@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	p, err := handwriting.NewFromPackagePath("struct2interface", handwriting.WithConsoleOutput())
+	p, err := handwriting.New("struct2interface", handwriting.WithConsoleOutput())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -19,12 +19,12 @@ func main() {
 	pkgname := "net/http/httptest"
 
 	f.Import(pkgname)
-	f.Code(func(e *handwriting.Emitter) error {
-		ioPkg := e.Prog.Package(pkgname).Pkg
+	f.Code(func(f *handwriting.File) error {
+		ioPkg := f.Prog.Package(pkgname).Pkg
 		typesutil.IterateAllObjects(ioPkg, func(ob types.Object) {
 			if _, ok := ob.Type().Underlying().(*types.Struct); ok {
 				exportedOnly := false
-				transform.AsInterface(f, ioPkg, ob.Name(), e.Output, exportedOnly)
+				transform.AsInterface(f, ioPkg, ob.Name(), f.Out, exportedOnly)
 			}
 		})
 		return nil
