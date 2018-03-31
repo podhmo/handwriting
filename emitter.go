@@ -44,14 +44,14 @@ func (e *Emitter) Emit(file *File) error {
 		}
 
 		// emitting import clause, lazily
-		e.emitPackage(w)
+		e.emitPrologue(w)
 
 		io.Copy(w, &body)
 		return nil
 	})
 }
 
-func (e *Emitter) emitPackage(w io.Writer) {
+func (e *Emitter) emitPrologue(w io.Writer) {
 	o := indent.New(w)
 	o.Printf("package %s\n", e.PkgInfo.Pkg.Name())
 
