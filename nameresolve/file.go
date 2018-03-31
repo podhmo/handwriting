@@ -44,7 +44,7 @@ func (f *File) ImportFake(path, name string) {
 
 // Name :
 func (f *File) Name(ob types.Object) string {
-	prefix := f.Prefix(ob.Pkg())
+	prefix := f.prefix(ob.Pkg())
 	if prefix == "" {
 		return ob.Name()
 	}
@@ -53,7 +53,7 @@ func (f *File) Name(ob types.Object) string {
 
 // TypeName :
 func (f *File) TypeName(typ types.Type) string {
-	return types.TypeString(typ, f.Prefix)
+	return types.TypeString(typ, f.prefix)
 }
 
 // TypeNameForResults :
@@ -63,16 +63,16 @@ func (f *File) TypeNameForResults(typ types.Type) string {
 		case 0:
 			return ""
 		case 1:
-			return types.TypeString(t.At(0).Type(), f.Prefix)
+			return types.TypeString(t.At(0).Type(), f.prefix)
 		default:
-			return types.TypeString(t, f.Prefix)
+			return types.TypeString(t, f.prefix)
 		}
 	}
-	return types.TypeString(typ, f.Prefix)
+	return types.TypeString(typ, f.prefix)
 }
 
-// Prefix :
-func (f *File) Prefix(other *types.Package) string {
+// prefix :
+func (f *File) prefix(other *types.Package) string {
 	if f.Root.Pkg == other {
 		return "" // same package; unqualified
 	}

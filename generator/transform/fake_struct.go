@@ -2,14 +2,13 @@ package transform
 
 import (
 	"fmt"
-	"go/types"
 	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/podhmo/handwriting"
 	"github.com/podhmo/handwriting/generator/lookup"
+	"github.com/podhmo/handwriting/generator/namesutil"
 	"github.com/podhmo/handwriting/generator/typesutil"
-	"github.com/podhmo/handwriting/nameresolve"
 )
 
 // TODO : struct's name policy
@@ -70,7 +69,6 @@ func GeneratorForFakeStructNew(f *handwriting.File) *GeneratorForFakeStruct {
 
 // Generate :
 func (g *GeneratorForFakeStruct) Generate(iface *lookup.InterfaceRef, name, outname string, exportedOnly bool) error {
-	// todo : comment
 	o := g.f.Out
 	r := g.f.Resolver
 	o.Printfln("// %s is fake struct of %s", outname, name)
@@ -79,7 +77,7 @@ func (g *GeneratorForFakeStruct) Generate(iface *lookup.InterfaceRef, name, outn
 	o.WithBlock(fmt.Sprintf("type %s struct", outname), func() {
 		iface.IterateMethods(typesutil.IterateModeFromBool(exportedOnly), func(method *lookup.FuncRef) {
 			g.d.Detect(method.Type())
-			o.Printfln("%s %s", nameresolve.ToUnexported(method.Name()), r.TypeName(method.Type()))
+			o.Printfln("%s %s", namesutil.ToUnexported(method.Name()), r.TypeName(method.Type()))
 		})
 	})
 
@@ -87,44 +85,15 @@ func (g *GeneratorForFakeStruct) Generate(iface *lookup.InterfaceRef, name, outn
 	iface.IterateMethods(typesutil.IterateModeFromBool(exportedOnly), func(method *lookup.FuncRef) {
 		sig := method.Signature
 		o.Printfln("// %s :", method.Name())
-
-		// xxx : fill params name
-		params := sig.Params()
-		unnamed := false
-		for i := 0; i < params.Len(); i++ {
-			x := params.At(i)
-			if x.Name() == "" {
-				unnamed = true
-				break
-			}
-		}
-		if unnamed {
-			namedVars := make([]*types.Var, params.Len())
-			for i := range namedVars {
-				x := params.At(i)
-				if x.Name() != "" {
-					namedVars[i] = x
-					continue
-				}
-				namedVars[i] = types.NewVar(x.Pos(), x.Pkg(), fmt.Sprintf("v%d", i), x.Type())
-			}
-			params = types.NewTuple(namedVars...)
-		}
+		params := namesutil.ToNamedTuple(sig.Params())
 
 		o.WithBlock(fmt.Sprintf("func (x *%s) %s %s %s", outname, method.Name(), r.TypeName(params), r.TypeNameForResults(sig.Results())), func() {
-			params := params
-
-			varnames := make([]string, params.Len())
-			for i := 0; i < params.Len(); i++ {
-				x := params.At(i)
-				varnames[i] = x.Name()
-			}
-
+			varnames := namesutil.NamesFromTuple(params)
 			if sig.Results().Len() == 0 {
-				o.Printfln("x.%s(%s)", nameresolve.ToUnexported(method.Name()), strings.Join(varnames, ", "))
+				o.Printfln("x.%s(%s)", namesutil.ToUnexported(method.Name()), strings.Join(varnames, ", "))
 				return
 			}
-			o.Printfln("return x.%s(%s)", nameresolve.ToUnexported(method.Name()), strings.Join(varnames, ", "))
+			o.Printfln("return x.%s(%s)", namesutil.ToUnexported(method.Name()), strings.Join(varnames, ", "))
 		})
 	})
 	return nil

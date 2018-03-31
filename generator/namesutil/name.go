@@ -1,6 +1,8 @@
-package nameresolve
+package namesutil
 
-import "strings"
+import (
+	"strings"
+)
 
 // ToExported :
 func ToExported(name string) string {
