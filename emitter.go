@@ -33,9 +33,6 @@ func (e *Emitter) Emit(file *File) error {
 				return errors.Wrap(err, fmt.Sprintf("setup in %q", e.File.Filename))
 			}
 		}
-		for _, s := range e.File.Headers {
-			e.Output.Println(s)
-		}
 
 		for _, ac := range e.File.Actions {
 			if err := ac(e); err != nil {

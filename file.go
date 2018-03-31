@@ -11,16 +11,10 @@ type File struct {
 	*nameresolve.File
 	Root *Planner
 
-	Headers []string
 	Setups  []func(*Emitter) error
 	Actions []func(*Emitter) error
 	imports []importspec
 	used    map[string]struct{}
-}
-
-// Header :
-func (f *File) Header(s string) {
-	f.Headers = append(f.Headers, s)
 }
 
 // Code :
