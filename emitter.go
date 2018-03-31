@@ -3,7 +3,6 @@ package handwriting
 import (
 	"bytes"
 	"fmt"
-	"go/types"
 	"io"
 	"strings"
 
@@ -73,13 +72,4 @@ func (e *Emitter) emitPackage(w io.Writer) {
 		o.Println(")")
 		o.Println("")
 	}
-}
-
-// Lookup :
-func (e *Emitter) Lookup(name string) *types.Package {
-	info := e.Prog.Package(name)
-	if info == nil {
-		return nil
-	}
-	return info.Pkg
 }

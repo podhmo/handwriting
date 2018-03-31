@@ -27,7 +27,7 @@ func run() error {
 	f.ImportWithName("fmt", "xfmt")
 	f.Code(func(s *handwriting.Emitter) error {
 		// todo: nil safe (not panic)
-		println := s.Lookup("fmt").Scope().Lookup("Println")
+		println := s.PkgInfo.Pkg.Scope().Lookup("Println")
 
 		s.Println("// F :")
 		s.WithBlock("func F(x int)", func() {
