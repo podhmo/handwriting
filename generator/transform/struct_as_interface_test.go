@@ -9,7 +9,7 @@ import (
 )
 
 func TestStructAsInterface(t *testing.T) {
-	p, err := handwriting.New("struct2interface", handwriting.WithOpener(multifile.Must(multifile.Dir("testdata/struct2interface"))))
+	p, err := handwriting.New("struct2interface", handwriting.WithOpener(multifile.Must(multifile.Dir("testdata/output/struct2interface"))))
 	require.NoError(t, err)
 
 	exportedOnly := true

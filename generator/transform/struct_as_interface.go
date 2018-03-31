@@ -7,6 +7,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/podhmo/handwriting"
+	"github.com/podhmo/handwriting/generator/lookup"
 	"github.com/podhmo/handwriting/generator/typesutil"
 )
 
@@ -20,7 +21,15 @@ func GenerateStructAsInterface(f *handwriting.PlanningFile, path string, exporte
 	f.Root.Import(pkgpath)
 	f.Code(func(f *handwriting.File) error {
 		g := GeneratorForStructAsInterfaceNew(f)
-		return g.Generate(pkgpath, name, exportedOnly)
+		pkg, err := g.f.Use(pkgpath)
+		if err != nil {
+			return errors.Wrap(err, "lookup package")
+		}
+		strct, err := pkg.LookupStruct(name)
+		if err != nil {
+			return errors.Wrap(err, "lookup struct")
+		}
+		return g.Generate(strct, name, exportedOnly)
 	})
 	return nil
 }
@@ -40,16 +49,7 @@ func GeneratorForStructAsInterfaceNew(f *handwriting.File) *GeneratorForStructAs
 }
 
 // Generate :
-func (g *GeneratorForStructAsInterface) Generate(pkgpath, name string, exportedOnly bool) error {
-	pkg, err := g.f.Use(pkgpath)
-	if err != nil {
-		return errors.Wrap(err, "lookup package")
-	}
-	strct, err := pkg.LookupStruct(name)
-	if err != nil {
-		return errors.Wrap(err, "lookup struct")
-	}
-
+func (g *GeneratorForStructAsInterface) Generate(strct *lookup.StructRef, name string, exportedOnly bool) error {
 	o := g.f.Out
 	// todo : comment
 	o.Printfln("// %s :", name)

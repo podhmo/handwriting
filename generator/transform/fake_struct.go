@@ -2,6 +2,7 @@ package transform
 
 import (
 	"fmt"
+	"go/types"
 	"strings"
 
 	"github.com/pkg/errors"
@@ -24,7 +25,15 @@ func GenerateFakeStruct(f *handwriting.PlanningFile, path string, exportedOnly b
 	f.Import(pkgpath)
 	f.Code(func(f *handwriting.File) error {
 		g := GeneratorForFakeStructNew(f)
-		return g.Generate(pkgpath, name, "fake"+name, exportedOnly)
+		pkg, err := g.f.Use(pkgpath)
+		if err != nil {
+			return errors.Wrap(err, "lookup package")
+		}
+		iface, err := pkg.LookupInterface(name)
+		if err != nil {
+			return errors.Wrap(err, "lookup interface")
+		}
+		return g.Generate(iface, name, "fake"+name, exportedOnly)
 	})
 	return nil
 }
@@ -60,20 +69,11 @@ func GeneratorForFakeStructNew(f *handwriting.File) *GeneratorForFakeStruct {
 }
 
 // Generate :
-func (g *GeneratorForFakeStruct) Generate(pkgpath, name, outname string, exportedOnly bool) error {
-	pkg, err := g.f.Use(pkgpath)
-	if err != nil {
-		return errors.Wrap(err, "lookup package")
-	}
-	iface, err := pkg.LookupInterface(name)
-	if err != nil {
-		return errors.Wrap(err, "lookup interface")
-	}
-
+func (g *GeneratorForFakeStruct) Generate(iface *lookup.InterfaceRef, name, outname string, exportedOnly bool) error {
 	// todo : comment
 	o := g.f.Out
 	r := g.f.Resolver
-	o.Printfln("// %s is fake struct of %s.%s", outname, g.f.PkgInfo.Pkg.Name(), name)
+	o.Printfln("// %s is fake struct of %s", outname, name)
 
 	// define struct
 	o.WithBlock(fmt.Sprintf("type %s struct", outname), func() {
@@ -87,12 +87,37 @@ func (g *GeneratorForFakeStruct) Generate(pkgpath, name, outname string, exporte
 	iface.IterateMethods(typesutil.IterateModeFromBool(exportedOnly), func(method *lookup.FuncRef) {
 		sig := method.Signature
 		o.Printfln("// %s :", method.Name())
-		o.WithBlock(fmt.Sprintf("func (x *%s) %s %s %s", outname, method.Name(), r.TypeName(sig.Params()), r.TypeNameForResults(sig.Results())), func() {
-			params := sig.Params()
+
+		// xxx : fill params name
+		params := sig.Params()
+		unnamed := false
+		for i := 0; i < params.Len(); i++ {
+			x := params.At(i)
+			if x.Name() == "" {
+				unnamed = true
+				break
+			}
+		}
+		if unnamed {
+			namedVars := make([]*types.Var, params.Len())
+			for i := range namedVars {
+				x := params.At(i)
+				if x.Name() != "" {
+					namedVars[i] = x
+					continue
+				}
+				namedVars[i] = types.NewVar(x.Pos(), x.Pkg(), fmt.Sprintf("v%d", i), x.Type())
+			}
+			params = types.NewTuple(namedVars...)
+		}
+
+		o.WithBlock(fmt.Sprintf("func (x *%s) %s %s %s", outname, method.Name(), r.TypeName(params), r.TypeNameForResults(sig.Results())), func() {
+			params := params
 
 			varnames := make([]string, params.Len())
 			for i := 0; i < params.Len(); i++ {
-				varnames[i] = params.At(i).Name()
+				x := params.At(i)
+				varnames[i] = x.Name()
 			}
 
 			if sig.Results().Len() == 0 {
