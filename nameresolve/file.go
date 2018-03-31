@@ -83,15 +83,3 @@ func (f *File) Prefix(other *types.Package) string {
 	f.Import(other)
 	return f.Imported[other.Path()]
 }
-
-// shorthand
-
-// WithPrefix :
-func WithPrefix(f *File, path, name string) string {
-	f.ImportFake(path, name)
-	prefix := f.Prefix(f.fakes[path])
-	if prefix == "" {
-		return name
-	}
-	return fmt.Sprintf("%s.%s", prefix, name)
-}

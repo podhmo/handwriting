@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/podhmo/handwriting/multifile"
 	"github.com/podhmo/handwriting/nameresolve"
+	"github.com/podhmo/handwriting/shorthand"
 	"golang.org/x/tools/go/loader"
 )
 
@@ -36,12 +37,10 @@ func New(pkg *types.Package, ops ...func(*Planner)) (*Planner, error) {
 	}
 
 	if h.Config == nil {
-		h.Config = &loader.Config{}
-		if !h.TypeCheck {
-			h.Config.TypeCheckFuncBodies = func(path string) bool {
-				return false
-			}
-			h.Config.TypeChecker.DisableUnusedImportCheck = true
+		if h.TypeCheck {
+			h.Config = &loader.Config{}
+		} else {
+			h.Config = shorthand.NewUncheckConfig()
 		}
 		h.importSelf()
 	}
