@@ -12,7 +12,7 @@ import (
 )
 
 // GenerateStringer :
-func GenerateStringer(f *handwriting.PlanningFile, name string) func(e *handwriting.Emitter) error {
+func GenerateStringer(f *handwriting.PlanningFile, name string) error {
 	f.Import("fmt")
 	f.Code(func(f *handwriting.File) error {
 		return Stringer(f.PkgInfo.Pkg, name, f.Out)

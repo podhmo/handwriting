@@ -3,8 +3,12 @@ package handwriting
 import (
 	"go/build"
 	"go/types"
+	"log"
+	"path/filepath"
 	"sort"
 	"strings"
+
+	"os"
 
 	"github.com/pkg/errors"
 	"github.com/podhmo/handwriting/multifile"
@@ -97,12 +101,28 @@ func (h *Planner) Import(path string) {
 
 func (h *Planner) importSelf() {
 	// check package, if existed, import as initial package (tentative)
-	bpkg, err := build.Default.Import(h.Pkg.Path(), ".", build.FindOnly)
-	if err != nil || len(bpkg.GoFiles) == 0 {
-		h.Config.CreateFromFiles(h.Pkg.Path())
+	importable := false
+	path := h.Pkg.Path()
+	if build.IsLocalImport(path) {
+		_, err := os.Stat(path)
+		if err == nil {
+			importable = true
+		}
+	} else {
+		for _, srcdir := range build.Default.SrcDirs() {
+			if _, err := os.Stat(filepath.Join(srcdir, path)); err == nil {
+				importable = true
+			}
+		}
+	}
+
+	if importable {
+		h.Config.Import(path)
 		return
 	}
-	h.Config.Import(h.Pkg.Path())
+
+	log.Printf("package %s is not found, creating.", h.Pkg.Path())
+	h.Config.CreateFromFiles(h.Pkg.Path())
 }
 
 // File :

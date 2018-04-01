@@ -1,6 +1,7 @@
 package multifile
 
 import (
+	"go/build"
 	"go/types"
 	"io"
 	"os"
@@ -46,6 +47,10 @@ func Dir(base string) (Opener, error) {
 
 // Package :
 func Package(pkg *types.Package, createIfNotExists bool) (Opener, error) {
+	if build.IsLocalImport(pkg.Path()) {
+		return &fileOpener{Base: pkg.Path()}, nil
+	}
+
 	path, err := pkgFilePath(pkg.Path(), createIfNotExists)
 	if err != nil {
 		return nil, err

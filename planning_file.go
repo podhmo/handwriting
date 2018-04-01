@@ -41,7 +41,6 @@ func (f *PlanningFile) ImportWithName(path string, name string) {
 		if info == nil {
 			return errors.Errorf("package not found %q", path)
 		}
-
 		name := name
 		if name == "" {
 			name = info.Pkg.Name()

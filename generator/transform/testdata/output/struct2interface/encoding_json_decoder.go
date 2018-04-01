@@ -1,8 +1,8 @@
 package struct2interface
 
 import (
-	"io"
 	"encoding/json"
+	"io"
 )
 
 // Decoder :
