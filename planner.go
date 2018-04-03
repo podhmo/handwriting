@@ -24,6 +24,7 @@ type Planner struct {
 
 	Files  map[string]*PlanningFile
 	Opener multifile.Opener
+
 	// options
 	TypeCheck bool
 }
@@ -33,6 +34,14 @@ func New(path string, ops ...func(*Planner)) (*Planner, error) {
 	elems := strings.Split(path, "/")
 	pkg := types.NewPackage(path, elems[len(elems)-1])
 	return createPlanner(pkg, ops...)
+}
+
+// Must :
+func Must(p *Planner, err error) *Planner {
+	if err != nil {
+		panic(err)
+	}
+	return p
 }
 
 // WithConfig :
