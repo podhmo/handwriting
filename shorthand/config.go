@@ -1,6 +1,8 @@
 package shorthand
 
-import "golang.org/x/tools/go/loader"
+import (
+	"golang.org/x/tools/go/loader"
+)
 
 // NewUncheckConfig :
 func NewUncheckConfig() *loader.Config {

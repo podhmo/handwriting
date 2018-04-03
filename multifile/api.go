@@ -4,7 +4,12 @@ import (
 	"go/build"
 	"go/types"
 	"io"
+	"io/ioutil"
+	"log"
 	"os"
+	"path/filepath"
+
+	"github.com/pkg/errors"
 )
 
 // Opener :
@@ -40,22 +45,42 @@ func Stderr() Opener {
 // Dir :
 func Dir(base string) (Opener, error) {
 	if err := os.MkdirAll(base, 0744); err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "create default directory")
+	}
+	if err := cleaning(base); err != nil {
+		return nil, errors.Wrap(err, "cleaning files")
 	}
 	return &fileOpener{Base: base}, nil
+}
+
+func cleaning(dirpath string) error {
+	fs, err := ioutil.ReadDir(dirpath)
+	if err != nil {
+		return err
+	}
+
+	for _, f := range fs {
+		if f.Size() == 0 {
+			log.Printf("cleaning, remove %s (empty file)", f.Name())
+			if err := os.Remove(filepath.Join(dirpath, f.Name())); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 // Package :
 func Package(pkg *types.Package, createIfNotExists bool) (Opener, error) {
 	if build.IsLocalImport(pkg.Path()) {
-		return &fileOpener{Base: pkg.Path()}, nil
+		return Dir(pkg.Path())
 	}
 
 	path, err := pkgFilePath(pkg.Path(), createIfNotExists)
 	if err != nil {
 		return nil, err
 	}
-	return &fileOpener{Base: path}, nil
+	return Dir(path)
 }
 
 // Must :
