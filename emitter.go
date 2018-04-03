@@ -6,6 +6,8 @@ import (
 	"io"
 	"strings"
 
+	"go/printer"
+
 	"github.com/pkg/errors"
 	"github.com/podhmo/handwriting/indent"
 	"github.com/podhmo/handwriting/multifile"
@@ -21,8 +23,21 @@ type Emitter struct {
 	Opener   multifile.Opener
 }
 
-// Emit :
-func (e *Emitter) Emit(file *PlanningFile) error {
+// EmitCreated :
+func (e *Emitter) EmitCreated(info *loader.PackageInfo) error {
+	for _, f := range info.Files {
+		name := e.Prog.Fset.File(f.Pos()).Name()
+		if err := multifile.WriteFile(e.Opener, name, func(w io.Writer) error {
+			return printer.Fprint(w, e.Prog.Fset, f)
+		}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// EmitFile :
+func (e *Emitter) EmitFile(file *PlanningFile) error {
 	return multifile.WriteFile(e.Opener, file.Filename, func(w io.Writer) error {
 		var body bytes.Buffer
 		f := &File{

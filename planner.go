@@ -32,7 +32,7 @@ type Planner struct {
 func New(path string, ops ...func(*Planner)) (*Planner, error) {
 	elems := strings.Split(path, "/")
 	pkg := types.NewPackage(path, elems[len(elems)-1])
-	return createPackage(pkg, ops...)
+	return createPlanner(pkg, ops...)
 }
 
 // WithConfig :
@@ -55,8 +55,8 @@ func WithConsoleOutput() func(*Planner) {
 	return WithOpener(multifile.Stdout())
 }
 
-// createPackage :
-func createPackage(pkg *types.Package, ops ...func(*Planner)) (*Planner, error) {
+// createPlanner :
+func createPlanner(pkg *types.Package, ops ...func(*Planner)) (*Planner, error) {
 	h := &Planner{
 		Pkg:   pkg,
 		Files: map[string]*PlanningFile{},
@@ -103,6 +103,13 @@ func (h *Planner) importSelf() {
 	// check package, if existed, import as initial package (tentative)
 	importable := false
 	path := h.Pkg.Path()
+
+	for _, spec := range h.Config.CreatePkgs {
+		if spec.Path == path {
+			return
+		}
+	}
+
 	if build.IsLocalImport(path) {
 		_, err := os.Stat(path)
 		if err == nil {
@@ -169,6 +176,12 @@ func (h *Planner) Emit() error {
 		return err
 	}
 
+	for _, info := range prog.Created {
+		if err := emitter.EmitCreated(info); err != nil {
+			return err
+		}
+	}
+
 	files := make([]*PlanningFile, 0, len(h.Files))
 	for k := range h.Files {
 		files = append(files, h.Files[k])
@@ -176,7 +189,7 @@ func (h *Planner) Emit() error {
 	sort.Slice(files, func(i, j int) bool { return files[i].Filename < files[j].Filename })
 
 	for i := range files {
-		if err := emitter.Emit(files[i]); err != nil {
+		if err := emitter.EmitFile(files[i]); err != nil {
 			return err
 		}
 	}

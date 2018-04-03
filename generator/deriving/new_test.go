@@ -34,13 +34,11 @@ type S struct {
 	astf, err := c.ParseFile("f.go", source)
 	require.NoError(t, err)
 
-	pkgpath := "./testdata/new"
-	c.CreateFromFiles(pkgpath, astf)
-
-	p, err := handwriting.New(pkgpath, handwriting.WithConsoleOutput(), handwriting.WithConfig(c))
+	c.CreateFromFiles("./testdata/new", astf)
+	p, err := handwriting.New("./testdata/new", handwriting.WithConfig(c))
 	require.NoError(t, err)
 
-	f := p.File("s_output_stringer.go")
+	f := p.File("f_output_new.go")
 	require.NoError(t, GenerateNew(f, "S"))
 	require.NoError(t, p.Emit())
 }
