@@ -75,14 +75,14 @@ func (g *GeneratorForFakeStruct) Generate(iface *lookup.InterfaceRef, name, outn
 
 	// define struct
 	o.WithBlock(fmt.Sprintf("type %s struct", outname), func() {
-		iface.IterateMethods(typesutil.IterateModeFromBool(exportedOnly), func(method *lookup.FuncRef) {
+		iface.IterateMethods(func(method *lookup.FuncRef) {
 			g.d.Detect(method.Type())
 			o.Printfln("%s %s", namesutil.ToUnexported(method.Name()), r.TypeName(method.Type()))
-		})
+		}, typesutil.IterateModeFromBool(exportedOnly))
 	})
 
 	// define methods
-	iface.IterateMethods(typesutil.IterateModeFromBool(exportedOnly), func(method *lookup.FuncRef) {
+	iface.IterateMethods(func(method *lookup.FuncRef) {
 		sig := method.Signature
 		o.Printfln("// %s :", method.Name())
 		params := namesutil.ToNamedTuple(sig.Params())
@@ -95,6 +95,6 @@ func (g *GeneratorForFakeStruct) Generate(iface *lookup.InterfaceRef, name, outn
 			}
 			o.Printfln("return x.%s(%s)", namesutil.ToUnexported(method.Name()), strings.Join(varnames, ", "))
 		})
-	})
+	}, typesutil.IterateModeFromBool(exportedOnly))
 	return nil
 }

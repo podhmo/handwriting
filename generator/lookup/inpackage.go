@@ -37,7 +37,7 @@ func AsStruct(ob types.Object) (*StructRef, error) {
 }
 
 // IterateMethods :
-func (ref *StructRef) IterateMethods(mode typesutil.IterateMode, fn func(*types.Func)) {
+func (ref *StructRef) IterateMethods(fn func(*types.Func), mode typesutil.IterateMode) {
 	named := ref.Named
 	n := named.NumMethods()
 	for i := 0; i < n; i++ {
@@ -50,7 +50,24 @@ func (ref *StructRef) IterateMethods(mode typesutil.IterateMode, fn func(*types.
 
 // IterateAllMethods :
 func (ref *StructRef) IterateAllMethods(fn func(*types.Func)) {
-	ref.IterateMethods(typesutil.All, fn)
+	ref.IterateMethods(fn, typesutil.All)
+}
+
+// IterateFields :
+func (ref *StructRef) IterateFields(fn func(*types.Var), mode typesutil.IterateMode) {
+	s := ref.Underlying
+	n := s.NumFields()
+	for i := 0; i < n; i++ {
+		field := s.Field(i)
+		if mode == typesutil.All || (field.Exported() && mode == typesutil.ExportedOnly) {
+			fn(field)
+		}
+	}
+}
+
+// IterateAllFields :
+func (ref *StructRef) IterateAllFields(fn func(*types.Var)) {
+	ref.IterateFields(fn, typesutil.All)
 }
 
 // InterfaceRef :
@@ -73,7 +90,7 @@ func AsInterface(ob types.Object) (*InterfaceRef, error) {
 }
 
 // IterateMethods :
-func (ref *InterfaceRef) IterateMethods(mode typesutil.IterateMode, fn func(*FuncRef)) {
+func (ref *InterfaceRef) IterateMethods(fn func(*FuncRef), mode typesutil.IterateMode) {
 	iface := ref.Underlying
 	n := iface.NumMethods()
 	for i := 0; i < n; i++ {
@@ -91,7 +108,7 @@ func (ref *InterfaceRef) IterateMethods(mode typesutil.IterateMode, fn func(*Fun
 
 // IterateAllMethods :
 func (ref *InterfaceRef) IterateAllMethods(fn func(*FuncRef)) {
-	ref.IterateMethods(typesutil.All, fn)
+	ref.IterateMethods(fn, typesutil.All)
 }
 
 // FuncRef :

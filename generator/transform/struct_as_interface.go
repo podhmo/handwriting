@@ -54,10 +54,10 @@ func (g *GeneratorForStructAsInterface) Generate(strct *lookup.StructRef, name s
 	// todo : comment
 	o.Printfln("// %s :", name)
 	o.WithBlock(fmt.Sprintf("type %s interface", name), func() {
-		strct.IterateMethods(typesutil.IterateModeFromBool(exportedOnly), func(method *types.Func) {
+		strct.IterateMethods(func(method *types.Func) {
 			g.d.Detect(method.Type())
 			o.Printfln("%s%s", method.Name(), strings.TrimPrefix(g.f.Resolver.TypeName(method.Type()), "func"))
-		})
+		}, typesutil.IterateModeFromBool(exportedOnly))
 	})
 	return nil
 }
