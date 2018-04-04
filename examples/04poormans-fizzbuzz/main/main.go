@@ -5,7 +5,7 @@ import (
 )
 
 func main() {
-	for i := 0; i<=100; i++ {
+	for i := 1; i<=100; i++ {
 		switch i {
 			case 0:
 				fmt.Println("fizzbuzz")
@@ -209,6 +209,8 @@ func main() {
 				fmt.Println("fizz")
 			case 100:
 				fmt.Println("buzz")
+			default:
+				panic("not supported")
 		}
 	}
 }

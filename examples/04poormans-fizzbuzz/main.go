@@ -14,7 +14,7 @@ func main() {
 	f.Code(func(f *handwriting.File) error {
 		o := f.Out
 		o.WithBlock("func main()", func() {
-			o.WithBlock("for i := 0; i<=100; i++", func() {
+			o.WithBlock("for i := 1; i<=100; i++", func() {
 				o.WithBlock("switch i", func() {
 					for i := 0; i <= 100; i++ {
 						o.WithIndent(fmt.Sprintf("case %d:", i), func() {
@@ -29,10 +29,15 @@ func main() {
 							}
 						})
 					}
+					o.WithIndent("default:", func() {
+						o.Println(`panic("not supported")`)
+					})
 				})
 			})
 		})
 		return nil
 	})
-	log.Fatal(p.Emit())
+	if err := p.Emit(); err != nil {
+		log.Fatal(err)
+	}
 }

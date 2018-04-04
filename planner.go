@@ -4,11 +4,10 @@ import (
 	"go/build"
 	"go/types"
 	"log"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
-
-	"os"
 
 	"github.com/pkg/errors"
 	"github.com/podhmo/handwriting/multifile"
