@@ -21,6 +21,9 @@ type Emitter struct {
 	Resolver *nameresolve.Resolver
 	PkgInfo  *loader.PackageInfo
 	Opener   multifile.Opener
+
+	// options
+	Format func(r io.Reader, w io.Writer) error
 }
 
 // EmitCreated :
@@ -59,11 +62,18 @@ func (e *Emitter) EmitFile(file *PlanningFile) error {
 			}
 		}
 
-		// emitting import clause, lazily
-		e.emitPrologue(f, w)
+		if e.Format == nil {
+			// emitting import clause, lazily
+			e.emitPrologue(f, w)
+			io.Copy(w, &body)
+			return nil
+		}
 
-		io.Copy(w, &body)
-		return nil
+		var out bytes.Buffer
+		// emitting import clause, lazily
+		e.emitPrologue(f, &out)
+		io.Copy(&out, &body)
+		return e.Format(&out, w)
 	})
 }
 

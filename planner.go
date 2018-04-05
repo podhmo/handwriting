@@ -2,7 +2,11 @@ package handwriting
 
 import (
 	"go/build"
+	"go/parser"
+	"go/printer"
+	"go/token"
 	"go/types"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -25,6 +29,7 @@ type Planner struct {
 	Opener multifile.Opener
 
 	// options
+	Format    func(r io.Reader, w io.Writer) error
 	TypeCheck bool
 }
 
@@ -89,6 +94,18 @@ func createPlanner(pkg *types.Package, ops ...func(*Planner)) (*Planner, error) 
 			return nil, err
 		}
 		h.Opener = opener
+	}
+	if h.Format == nil {
+		fset := token.NewFileSet()
+		pp := &printer.Config{Tabwidth: 8}
+
+		h.Format = func(r io.Reader, w io.Writer) error {
+			f, err := parser.ParseFile(fset, "", r, parser.ParseComments)
+			if err != nil {
+				return err
+			}
+			return pp.Fprint(w, fset, f)
+		}
 	}
 	return h, nil
 }
@@ -156,6 +173,7 @@ func (h *Planner) createEmitter(prog *loader.Program, pkg *types.Package) (*Emit
 		Prog:    prog,
 		PkgInfo: prog.Package(h.Pkg.Path()),
 		Opener:  h.Opener,
+		Format:  h.Format,
 	}
 	if emitter.PkgInfo == nil {
 		return nil, errors.Errorf("%q package is not found", pkg.Path())
