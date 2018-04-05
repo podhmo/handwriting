@@ -123,36 +123,53 @@ func run(opt opt, namefunc func(string) string) error {
 }
 
 func generateStruct(f *handwriting.File, s *lookup.StructRef, name string, namefunc func(string) string) error {
-	d := f.CreateCaptureImportDetector()
 	f.Out.WithBlock(fmt.Sprintf(`type %s struct`, name), func() {
-		i := 0
-		s.IterateAllFields(func(field *types.Var) {
-			d.Detect(field.Type())
-
-			tag := s.Underlying.Tag(i)
-			i++
-
-			if _, isFunc := field.Type().(*types.Signature); isFunc {
-				f.Out.Printfln("%s %s `%s`", field.Name(), f.Resolver.TypeName(field.Type()), mergeTag(tag, "-"))
-				return
-			}
-			if _, isisChan := field.Type().(*types.Chan); isisChan {
-				f.Out.Printfln("%s %s `%s`", field.Name(), f.Resolver.TypeName(field.Type()), mergeTag(tag, "-"))
-				return
-			}
-
-			if !field.Exported() {
-				f.Out.Printfln("%s %s `%s`", field.Name(), f.Resolver.TypeName(field.Type()), mergeTag(tag, "-"))
-				return
-			}
-
-			f.Out.Printfln("%s %s `%s`", field.Name(), f.Resolver.TypeName(field.Type()), mergeTag(tag, namefunc(field.Name())))
-		})
+		generateStructBody(f, s, namefunc)
 	})
 	return nil
 }
 
+func generateStructBody(f *handwriting.File, s *lookup.StructRef, namefunc func(string) string) {
+	d := f.CreateCaptureImportDetector()
+
+	i := 0
+	s.IterateAllFields(func(field *types.Var) {
+		d.Detect(field.Type())
+
+		tag := s.Underlying.Tag(i)
+		i++
+
+		if !field.Exported() {
+			f.Out.Printfln("%s %s `%s`", field.Name(), f.Resolver.TypeName(field.Type()), mergeTag(tag, "-"))
+			return
+		}
+
+		if _, isFunc := field.Type().(*types.Signature); isFunc {
+			f.Out.Printfln("%s %s `%s`", field.Name(), f.Resolver.TypeName(field.Type()), mergeTag(tag, "-"))
+			return
+		}
+		if _, isisChan := field.Type().(*types.Chan); isisChan {
+			f.Out.Printfln("%s %s `%s`", field.Name(), f.Resolver.TypeName(field.Type()), mergeTag(tag, "-"))
+			return
+		}
+
+		if _, isRawStruct := field.Type().(*types.Struct); isRawStruct {
+			f.Out.WithIndent(fmt.Sprintf("%s struct {", field.Name()), func() {
+				sref := &lookup.StructRef{Underlying: field.Type().(*types.Struct)}
+				generateStructBody(f, sref, namefunc)
+			})
+			f.Out.Printfln("} `%s`", mergeTag(tag, namefunc(field.Name())))
+            return
+		}
+
+		f.Out.Printfln("%s %s `%s`", field.Name(), f.Resolver.TypeName(field.Type()), mergeTag(tag, namefunc(field.Name())))
+	})
+}
+
 func mergeTag(tag, defaultname string) string {
+	if tag == "" {
+		return fmt.Sprintf(`json:"%s"`, defaultname)
+	}
 	v, ok := reflect.StructTag(tag).Lookup("json")
 	if !ok {
 		return fmt.Sprintf(`%s json:"%s"`, tag, defaultname)
