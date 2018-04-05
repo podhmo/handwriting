@@ -2,18 +2,16 @@ package main
 
 import (
 	"fmt"
-	"go/build"
 	"go/types"
 	"log"
 	"os"
-	"path/filepath"
 	"reflect"
 	"strings"
 
-	"github.com/pkg/errors"
 	"github.com/podhmo/handwriting"
 	"github.com/podhmo/handwriting/generator/lookup"
 	"github.com/podhmo/handwriting/generator/namesutil"
+	"github.com/podhmo/handwriting/shorthand"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -22,24 +20,6 @@ type opt struct {
 	toPkg    string
 	names    []string
 	namefunc string
-}
-
-func guessPkg() (string, error) {
-	curdir, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-	path, err := filepath.Abs(curdir)
-	if err != nil {
-		return "", err
-	}
-	for _, srcdir := range build.Default.SrcDirs() {
-		if strings.HasPrefix(path, srcdir) {
-			pkgname := strings.TrimLeft(strings.Replace(path, srcdir, "", 1), "/")
-			return pkgname, nil
-		}
-	}
-	return "", errors.Errorf("%q is not subdir of srcdirs(%q)", path, build.Default.SrcDirs())
 }
 
 func main() {
@@ -56,7 +36,7 @@ func main() {
 	}
 
 	if opt.fromPkg == "" || opt.fromPkg == "." {
-		pkg, err := guessPkg()
+		pkg, err := shorthand.GuessPkg()
 		if err != nil {
 			app.FatalUsage(fmt.Sprintf("%v", err))
 		}
@@ -159,7 +139,7 @@ func generateStructBody(f *handwriting.File, s *lookup.StructRef, namefunc func(
 				generateStructBody(f, sref, namefunc)
 			})
 			f.Out.Printfln("} `%s`", mergeTag(tag, namefunc(field.Name())))
-            return
+			return
 		}
 
 		f.Out.Printfln("%s %s `%s`", field.Name(), f.Resolver.TypeName(field.Type()), mergeTag(tag, namefunc(field.Name())))
