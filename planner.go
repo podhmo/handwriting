@@ -97,7 +97,7 @@ func createPlanner(pkg *types.Package, ops ...func(*Planner)) (*Planner, error) 
 	}
 	if h.Format == nil {
 		fset := token.NewFileSet()
-		pp := &printer.Config{Tabwidth: 8}
+		pp := &printer.Config{Tabwidth: 8, Mode: printer.UseSpaces | printer.TabIndent}
 
 		h.Format = func(r io.Reader, w io.Writer) error {
 			f, err := parser.ParseFile(fset, "", r, parser.ParseComments)

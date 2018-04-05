@@ -22,6 +22,19 @@ func ToUnexported(name string) string {
 	return strings.ToLower(name[0:1]) + name[1:]
 }
 
+// ToLowerCamel :
+func ToLowerCamel(name string) string {
+	if strings.HasSuffix(name, "ID") {
+		name = name[:len(name)-2] + "Id"
+	}
+	for k, lower := range commonInitialisms {
+		if strings.HasPrefix(name, k) {
+			return lower + ToExported(name[len(k):])
+		}
+	}
+	return ToUnexported(name)
+}
+
 // CamelToSnake :
 func CamelToSnake(s string) string {
 	var result string
@@ -58,51 +71,53 @@ func startsWithInitialism(s string) string {
 	var initialism string
 	// the longest initialism is 5 char, the shortest 2
 	for i := 1; i <= 5; i++ {
-		if len(s) > i-1 && commonInitialisms[s[:i]] {
-			initialism = s[:i]
+		if len(s) > i-1 {
+			if _, ok := commonInitialisms[s[:i]]; ok {
+				initialism = s[:i]
+			}
 		}
 	}
 	return initialism
 }
 
 // copy from https://github.com/golang/lint
-var commonInitialisms = map[string]bool{
-	"ACL":   true,
-	"API":   true,
-	"ASCII": true,
-	"CPU":   true,
-	"CSS":   true,
-	"DNS":   true,
-	"EOF":   true,
-	"GUID":  true,
-	"HTML":  true,
-	"HTTP":  true,
-	"HTTPS": true,
-	"ID":    true,
-	"IP":    true,
-	"JSON":  true,
-	"LHS":   true,
-	"QPS":   true,
-	"RAM":   true,
-	"RHS":   true,
-	"RPC":   true,
-	"SLA":   true,
-	"SMTP":  true,
-	"SQL":   true,
-	"SSH":   true,
-	"TCP":   true,
-	"TLS":   true,
-	"TTL":   true,
-	"UDP":   true,
-	"UI":    true,
-	"UID":   true,
-	"UUID":  true,
-	"URI":   true,
-	"URL":   true,
-	"UTF8":  true,
-	"VM":    true,
-	"XML":   true,
-	"XMPP":  true,
-	"XSRF":  true,
-	"XSS":   true,
+var commonInitialisms = map[string]string{
+	"ACL":   "acl",
+	"API":   "api",
+	"ASCII": "ascii",
+	"CPU":   "cpu",
+	"CSS":   "css",
+	"DNS":   "dns",
+	"EOF":   "eof",
+	"GUID":  "guid",
+	"HTML":  "html",
+	"HTTP":  "http",
+	"HTTPS": "https",
+	"ID":    "id",
+	"IP":    "ip",
+	"JSON":  "json",
+	"LHS":   "lhs",
+	"QPS":   "qps",
+	"RAM":   "ram",
+	"RHS":   "rhs",
+	"RPC":   "rpc",
+	"SLA":   "sla",
+	"SMTP":  "smtp",
+	"SQL":   "sql",
+	"SSH":   "ssh",
+	"TCP":   "tcp",
+	"TLS":   "tls",
+	"TTL":   "ttl",
+	"UDP":   "udp",
+	"UI":    "ui",
+	"UID":   "uid",
+	"UUID":  "uuid",
+	"URI":   "uri",
+	"URL":   "url",
+	"UTF8":  "utf8",
+	"VM":    "vm",
+	"XML":   "xml",
+	"XMPP":  "xmpp",
+	"XSRF":  "xsrf",
+	"XSS":   "xss",
 }
