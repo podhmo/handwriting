@@ -15,9 +15,9 @@ func main() {
 	f := p.File("f.go")
 
 	// adding package import code for indirectly impored
-	transform.GenerateInterface(f, "golang.org/x/tools/go/loader/Program", true)
+	transform.GenerateStructAsInterface(f, "golang.org/x/tools/go/loader/Program", true)
 
-	transform.GenerateInterface(f, "github.com/podhmo/handwriting/File", true)
+	transform.GenerateStructAsInterface(f, "github.com/podhmo/handwriting/File", true)
 
 	if err := p.Emit(); err != nil {
 		log.Fatal(err)

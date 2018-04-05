@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/podhmo/handwriting"
+	"github.com/podhmo/handwriting/generator/lookup"
 	"github.com/podhmo/handwriting/generator/transform"
 	"github.com/podhmo/handwriting/generator/typesutil"
 )
@@ -30,7 +31,12 @@ func main() {
 		typesutil.IterateAllObjects(pkg.Package, func(ob types.Object) {
 			if _, ok := ob.Type().Underlying().(*types.Struct); ok {
 				exportedOnly := false
-				if err := g.Generate(pkgname, ob.Name(), exportedOnly); err != nil {
+				strct, err := lookup.AsStruct(ob)
+				if err != nil {
+					rerr = err
+					return
+				}
+				if err := g.Generate(strct, ob.Name(), exportedOnly); err != nil {
 					rerr = err
 				}
 			}
